@@ -14,6 +14,7 @@ import com.example.my_bank_backend.domain.user.Account;
 import com.example.my_bank_backend.domain.user.User;
 import com.example.my_bank_backend.dto.LoginRequestDto;
 import com.example.my_bank_backend.dto.RegisterRequestDto;
+import com.example.my_bank_backend.dto.ResponseDto;
 import com.example.my_bank_backend.infra.security.TokenService;
 import com.example.my_bank_backend.repositories.UserRepository;
 import com.example.my_bank_backend.response.BackResponse;
@@ -65,7 +66,7 @@ public class AuthController {
 
             this.userRepository.save(newUser);
             String token = this.tokenService.generateToken(newUser);
-            return ResponseEntity.ok(new BackResponse("200", "Usuario cadastrado com sucesso! Token: " + token));
+            return ResponseEntity.ok(new ResponseDto(token, newUser.getName()));
         }
         return ResponseEntity.badRequest().build();
     }
