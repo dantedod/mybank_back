@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.my_bank_backend.domain.user.Account;
+import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.user.User;
 import com.example.my_bank_backend.dto.LoginRequestDto;
 import com.example.my_bank_backend.dto.RegisterRequestDto;
