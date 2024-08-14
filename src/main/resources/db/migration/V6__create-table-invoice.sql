@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS invoice (
 
     id BIGSERIAL PRIMARY KEY,
     invoice_description VARCHAR(255) NOT NULL ,
-    amount VARCHAR(100) not null,
+    amount DOUBLE PRECISION not null,
     card_invoice VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
     card_name VARCHAR(100) NOT NULL,
