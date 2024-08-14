@@ -1,5 +1,6 @@
 package com.example.my_bank_backend.domain.user;
 
+import com.example.my_bank_backend.domain.account.Account;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.CascadeType;
