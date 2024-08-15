@@ -1,15 +1,14 @@
 package com.example.my_bank_backend.domain.card;
 
 import com.example.my_bank_backend.domain.account.Account;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +23,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Card {
     
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,10 +34,9 @@ public class Card {
     private Double card_value;
     private String expiration_date;
     private String card_status;
-    private Long account_id;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "card", orphanRemoval = true)
-    @JoinColumn(name = "account_id", referencedColumnName = "id", insertable = false, updatable = false)
-    @JsonManagedReference
-    private Account account;
+    @ManyToOne
+    @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
+    @JsonBackReference
+    private Account account; // Cada cartão pertence a uma única conta
 }

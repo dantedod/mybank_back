@@ -1,8 +1,9 @@
 package com.example.my_bank_backend.domain.account;
 
+import java.util.List;
+
 import com.example.my_bank_backend.domain.card.Card;
 import com.example.my_bank_backend.domain.user.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
@@ -27,6 +28,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Account {
     
+      
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,8 +42,8 @@ public class Account {
     @JsonManagedReference
     private User user;
 
-    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
-    private Card card;
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Card> cards; // Alterado para uma lista de cartões
     
 }
