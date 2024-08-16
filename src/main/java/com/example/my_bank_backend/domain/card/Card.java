@@ -27,12 +27,12 @@ public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String card_name;
-    private String card_number;
-    private String card_password;
+    private String cardName;
+    private String cardNumber;
+    private String cardPassword;
     private Integer cvv;
-    private Double card_value;
-    private String expiration_date;
+    private Double cardValue;
+    private String expirationDate;
     private String card_status;
 
     @ManyToOne
