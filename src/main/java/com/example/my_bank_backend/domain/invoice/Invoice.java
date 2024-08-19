@@ -1,7 +1,9 @@
 package com.example.my_bank_backend.domain.invoice;
 
+import java.util.Date;
+
 import com.example.my_bank_backend.domain.card.Card;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -27,16 +29,16 @@ public class Invoice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String invoice_description;
+    private String invoiceDescription;
     private Double amount;
-    private String card_invoice;
-    private String card_name;
-    private String invoice_date;
-    private String invoice_status;
-    private String due_date;
+    private String cardName;
+    private Date invoiceDate;
+    private String invoiceStatus;
+    private Date dueDate;
+    private String email;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "card_id", referencedColumnName = "id", nullable = false)
-    @JsonManagedReference
+    @JsonBackReference
     private Card card;  
 }
