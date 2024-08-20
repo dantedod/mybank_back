@@ -8,5 +8,5 @@ public record CardRequestDto(
     Integer cvv,
     Double cardValue,
     String expirationDate,
-    String cardStatus
-) {}
+    String cardStatus) {
+}
