@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class BackResponse {    
+public class BackResponse {
     String status;
     String message;
 }
