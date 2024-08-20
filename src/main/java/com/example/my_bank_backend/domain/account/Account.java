@@ -27,8 +27,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Account {
-    
-      
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -45,5 +44,5 @@ public class Account {
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Card> cards; // Alterado para uma lista de cartões
-    
+
 }
