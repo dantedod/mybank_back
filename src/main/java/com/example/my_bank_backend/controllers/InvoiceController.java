@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +28,12 @@ public class InvoiceController {
   private CardRepository cardRepository;
 
   private InvoiceRepository invoiceRepository;
+
+  @Autowired
+  public InvoiceController(CardRepository cardRepository, InvoiceRepository invoiceRepository){
+    this.cardRepository = cardRepository;
+    this.invoiceRepository = invoiceRepository;
+  }
 
   @GetMapping
   public ResponseEntity<List<Invoice>> getAllInvoices() {
