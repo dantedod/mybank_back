@@ -28,8 +28,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Card {
-    
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -39,13 +38,13 @@ public class Card {
     private Integer cvv;
     private Double cardValue;
     private String expirationDate;
-    private String card_status;
+    private String cardStatus;
 
     @ManyToOne
     @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
     @JsonBackReference
     private Account account; // Cada cartão pertence a uma única conta
-    
+
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Invoice> invoices; // Mudado para List<Invoice>

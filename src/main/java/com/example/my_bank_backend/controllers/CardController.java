@@ -2,7 +2,6 @@ package com.example.my_bank_backend.controllers;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,26 +23,23 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/card")
 @RequiredArgsConstructor
 public class CardController {
-    
-    @Autowired
+
     private CardRepository cardRepository;
 
-    @Autowired
     private AccountRepository accountRepository;
 
-    @Autowired
     private CardService cardService;
 
     @PostMapping("/create")
-    public ResponseEntity<String> createCard(@RequestBody CardRequestDto body){
+    public ResponseEntity<String> createCard(@RequestBody CardRequestDto body) {
 
         Optional<Account> optAccount = accountRepository.findById(body.accountId());
 
-        if(optAccount.isPresent()){
+        if (optAccount.isPresent()) {
             Account account = optAccount.get();
 
             Optional<Card> existingCard = cardRepository.findByCardNumberAndAccount(body.cardNumber(), account);
-            if(existingCard.isPresent()){
+            if (existingCard.isPresent()) {
                 return ResponseEntity.badRequest().body("Já existe um cartão associada a essa conta!");
             }
 
@@ -54,8 +50,7 @@ public class CardController {
             card.setCvv(Integer.parseInt(cardService.generateCvv()));
             card.setCardValue(body.cardValue());
             card.setExpirationDate("10/2030");
-            card.setCard_status("Ativo");
-            
+            card.setCardStatus("Ativo");
 
             card.setAccount(account);
             cardRepository.save(card);
