@@ -8,30 +8,30 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CardService {
-    
+
     private final SecureRandom secureRandom = new SecureRandom();
     private final Set<String> generatedCards = new HashSet<>();
     private final Set<String> generatedCvv = new HashSet<>();
 
     public String generateCardNumber() {
         String cardNumber;
-        do{
+        do {
             cardNumber = String.format("%04d %04d %04d %04d",
-            secureRandom.nextInt(10000),
-            secureRandom.nextInt(10000),
-            secureRandom.nextInt(10000),
-            secureRandom.nextInt(10000));
-        } while(generatedCards.contains(cardNumber));
+                    secureRandom.nextInt(10000),
+                    secureRandom.nextInt(10000),
+                    secureRandom.nextInt(10000),
+                    secureRandom.nextInt(10000));
+        } while (generatedCards.contains(cardNumber));
 
         generatedCards.add(cardNumber);
         return cardNumber;
     }
 
-    public String generateCvv(){
+    public String generateCvv() {
         String cvv;
-        do{
+        do {
             cvv = String.format("%03d", secureRandom.nextInt(1000));
-        }while(generatedCvv.contains(cvv));
+        } while (generatedCvv.contains(cvv));
 
         generatedCvv.add(cvv);
         return cvv;
