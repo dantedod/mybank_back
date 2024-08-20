@@ -50,7 +50,7 @@ public class CardController {
             card.setCvv(Integer.parseInt(cardService.generateCvv()));
             card.setCardValue(body.cardValue());
             card.setExpirationDate("10/2030");
-            card.setCard_status("Ativo");
+            card.setCardStatus("Ativo");
 
             card.setAccount(account);
             cardRepository.save(card);
