@@ -2,7 +2,6 @@ package com.example.my_bank_backend.controllers;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,13 +24,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CardController {
     
-    @Autowired
     private CardRepository cardRepository;
 
-    @Autowired
     private AccountRepository accountRepository;
 
-    @Autowired
     private CardService cardService;
 
     @PostMapping("/create")

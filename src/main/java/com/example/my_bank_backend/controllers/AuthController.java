@@ -17,7 +17,6 @@ import com.example.my_bank_backend.dto.RegisterRequestDto;
 import com.example.my_bank_backend.dto.ResponseDto;
 import com.example.my_bank_backend.infra.security.TokenService;
 import com.example.my_bank_backend.repositories.UserRepository;
-import com.example.my_bank_backend.response.BackResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,7 +31,7 @@ public class AuthController {
     private final TokenService tokenService;
 
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody LoginRequestDto body){
+    public ResponseEntity<ResponseDto> login(@RequestBody LoginRequestDto body){
         User user = this.userRepository.findByEmail(body.email()).orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
         if(passwordEncoder.matches(body.password(), user.getPassword())) {
             String token = this.tokenService.generateToken(user);
@@ -42,7 +41,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody RegisterRequestDto body){
+    public ResponseEntity<ResponseDto> register(@RequestBody RegisterRequestDto body){
 
         Optional<User> user = this.userRepository.findByEmail(body.email());
 
