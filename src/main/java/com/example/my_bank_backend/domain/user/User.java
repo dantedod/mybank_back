@@ -32,7 +32,7 @@ public class User {
     private String password;
     private String cpf;
     private String birthdate;
-    
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     private Account account;
