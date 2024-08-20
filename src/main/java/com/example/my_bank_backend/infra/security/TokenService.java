@@ -19,22 +19,19 @@ public class TokenService {
 
     @Value("${api.security.token.secret}")
     private String secret;
-    
-    public String generateToken(User user){
-        try {
-            //Algoritimo de HASH
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-                                        //serve para identificar quem gerou o token
-            String token = JWT.create().withIssuer("login-auth-api").withSubject(user.getEmail()).withExpiresAt(this.generateExpiration()).sign(algorithm);
 
-            return token;
-        } catch(JWTCreationException exception) {
+    public String generateToken(User user) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            return JWT.create().withIssuer("login-auth-api").withSubject(user.getEmail())
+                    .withExpiresAt(this.generateExpiration()).sign(algorithm);
+        } catch (JWTCreationException exception) {
             throw new RuntimeCryptoException("Erro ao autenticar");
         }
     }
 
-    public String validateToken(String token){
-        try{
+    public String validateToken(String token) {
+        try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
 
             return JWT.require(algorithm).withIssuer("login-auth-api").build().verify(token).getSubject();
