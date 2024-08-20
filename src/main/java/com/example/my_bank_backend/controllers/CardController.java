@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/card")
 @RequiredArgsConstructor
 public class CardController {
-    
+
     private CardRepository cardRepository;
 
     private AccountRepository accountRepository;
@@ -31,15 +31,15 @@ public class CardController {
     private CardService cardService;
 
     @PostMapping("/create")
-    public ResponseEntity<String> createCard(@RequestBody CardRequestDto body){
+    public ResponseEntity<String> createCard(@RequestBody CardRequestDto body) {
 
         Optional<Account> optAccount = accountRepository.findById(body.accountId());
 
-        if(optAccount.isPresent()){
+        if (optAccount.isPresent()) {
             Account account = optAccount.get();
 
             Optional<Card> existingCard = cardRepository.findByCardNumberAndAccount(body.cardNumber(), account);
-            if(existingCard.isPresent()){
+            if (existingCard.isPresent()) {
                 return ResponseEntity.badRequest().body("Já existe um cartão associada a essa conta!");
             }
 
@@ -51,7 +51,6 @@ public class CardController {
             card.setCardValue(body.cardValue());
             card.setExpirationDate("10/2030");
             card.setCard_status("Ativo");
-            
 
             card.setAccount(account);
             cardRepository.save(card);

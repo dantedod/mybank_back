@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/user")
 public class UserController {
-    
+
     @GetMapping
-    public ResponseEntity<String> getUser(){
+    public ResponseEntity<String> getUser() {
         return ResponseEntity.ok("Sucesso!");
     }
 }

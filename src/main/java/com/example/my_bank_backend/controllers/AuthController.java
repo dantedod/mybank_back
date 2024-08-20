@@ -25,15 +25,16 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseDto> login(@RequestBody LoginRequestDto body){
-        User user = this.userRepository.findByEmail(body.email()).orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
-        if(passwordEncoder.matches(body.password(), user.getPassword())) {
+    public ResponseEntity<ResponseDto> login(@RequestBody LoginRequestDto body) {
+        User user = this.userRepository.findByEmail(body.email())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
+        if (passwordEncoder.matches(body.password(), user.getPassword())) {
             String token = this.tokenService.generateToken(user);
             return ResponseEntity.ok(new ResponseDto(token, user.getName(), user.getCpf()));
         }
@@ -41,11 +42,11 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ResponseDto> register(@RequestBody RegisterRequestDto body){
+    public ResponseEntity<ResponseDto> register(@RequestBody RegisterRequestDto body) {
 
         Optional<User> user = this.userRepository.findByEmail(body.email());
 
-        if(user.isEmpty()){
+        if (user.isEmpty()) {
             User newUser = new User();
             newUser.setPassword(passwordEncoder.encode(body.password()));
             newUser.setEmail(body.email());

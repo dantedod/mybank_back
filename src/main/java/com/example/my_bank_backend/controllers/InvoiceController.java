@@ -30,7 +30,7 @@ public class InvoiceController {
   private InvoiceRepository invoiceRepository;
 
   @Autowired
-  public InvoiceController(CardRepository cardRepository, InvoiceRepository invoiceRepository){
+  public InvoiceController(CardRepository cardRepository, InvoiceRepository invoiceRepository) {
     this.cardRepository = cardRepository;
     this.invoiceRepository = invoiceRepository;
   }

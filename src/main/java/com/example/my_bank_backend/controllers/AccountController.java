@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/account")
 @RequiredArgsConstructor
 public class AccountController {
-    
+
     private AccountRepository accountRepository;
 
     private UserRepository userRepository;
@@ -33,10 +33,10 @@ public class AccountController {
     public ResponseEntity<String> createAccount(@RequestBody Account account) {
         Optional<User> optUser = userRepository.findByCpf(account.getCpf());
 
-        if(optUser.isPresent()) {
+        if (optUser.isPresent()) {
             User user = optUser.get();
 
-            if(user.getAccount() != null) {
+            if (user.getAccount() != null) {
                 return ResponseEntity.badRequest().body("Já existe uma conta com esse CPF");
             }
 
@@ -45,29 +45,29 @@ public class AccountController {
             return ResponseEntity.ok("Conta criada com sucesso");
         } else {
             return ResponseEntity.badRequest().body("Fudeu, usuário não encontrado!");
-        }  
+        }
     }
 
     @GetMapping("/{cpf}")
     public ResponseEntity<Account> getAccountByCpf(@PathVariable String cpf) {
         Optional<Account> optAccount = accountRepository.findByCpf(cpf);
 
-        return optAccount.map(ResponseEntity:: ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return optAccount.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public ResponseEntity<List<Account>> getAllAccounts(){
+    public ResponseEntity<List<Account>> getAllAccounts() {
         List<Account> accounts = accountRepository.findAll();
         return ResponseEntity.ok(accounts);
     }
 
     @PostMapping("/{cpf}/{value}")
-    public ResponseEntity<Account> addValueToAccount(@PathVariable String cpf, @PathVariable Double value){
+    public ResponseEntity<Account> addValueToAccount(@PathVariable String cpf, @PathVariable Double value) {
 
         Optional<Account> optAccount = accountRepository.findByCpf(cpf);
 
         if (value == null) {
-            return ResponseEntity.badRequest().body(null);  
+            return ResponseEntity.badRequest().body(null);
         }
 
         Account account = optAccount.get();
@@ -79,12 +79,12 @@ public class AccountController {
     }
 
     @PostMapping("/{cpf}/{value}/sub")
-    public ResponseEntity<Account> subValueAccount(@PathVariable String cpf, @PathVariable Double value){
+    public ResponseEntity<Account> subValueAccount(@PathVariable String cpf, @PathVariable Double value) {
 
         Optional<Account> optAccount = accountRepository.findByCpf(cpf);
 
         if (value == null) {
-            return ResponseEntity.badRequest().body(null);  
+            return ResponseEntity.badRequest().body(null);
         }
 
         Account account = optAccount.get();
