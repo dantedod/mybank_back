@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +22,7 @@ import com.example.my_bank_backend.dto.InvoiceRequestDto;
 import com.example.my_bank_backend.repositories.CardRepository;
 import com.example.my_bank_backend.repositories.InvoiceRepository;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/invoice")
 public class InvoiceController {
@@ -42,16 +44,13 @@ public class InvoiceController {
 
   @PostMapping("/{cardId}/create")
   public ResponseEntity<String> createInvoice(@PathVariable Long cardId, @RequestBody InvoiceRequestDto invoiceDto) {
-    // Busca o cartão pelo ID
     Optional<Card> optCard = cardRepository.findById(cardId);
 
     if (optCard.isPresent()) {
       Card card = optCard.get();
 
       Invoice newInvoice = new Invoice();
-      // Preenche os campos da fatura com as informações necessárias
       newInvoice.setCard(card);
-      newInvoice.setCardName(card.getCardName()); // Supondo que card tenha um campo cardName
 
       newInvoice.setInvoiceDescription(invoiceDto.invoiceDescription());
 
@@ -59,17 +58,14 @@ public class InvoiceController {
 
       newInvoice.setEmail(invoiceDto.email());
 
-      // Converter LocalDate para Date
       Date invoiceDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-      newInvoice.setInvoiceDate(invoiceDate); // Define a data da fatura como a data atual
+      newInvoice.setInvoiceDate(invoiceDate);
 
-      // Definir data de vencimento em 30 dias
       Date dueDate = Date.from(LocalDate.now().plusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant());
       newInvoice.setDueDate(dueDate);
 
-      newInvoice.setInvoiceStatus(invoiceDto.invoiceStatus()); // Status inicial da fatura
+      newInvoice.setInvoiceStatus(invoiceDto.invoiceStatus());
 
-      // Salva a fatura
       newInvoice.setCard(card);
       invoiceRepository.save(newInvoice);
       return ResponseEntity.ok("Fatura criada com sucesso!");
