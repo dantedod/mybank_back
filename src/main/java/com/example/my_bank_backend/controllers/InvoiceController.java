@@ -28,7 +28,6 @@ import com.example.my_bank_backend.repositories.InvoiceRepository;
 public class InvoiceController {
 
   private CardRepository cardRepository;
-
   private InvoiceRepository invoiceRepository;
 
   @Autowired

@@ -2,6 +2,7 @@ package com.example.my_bank_backend.controllers;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,13 @@ public class CardController {
     private AccountRepository accountRepository;
 
     private CardService cardService;
+
+    @Autowired
+    public CardController(CardRepository cardRepository, AccountRepository accountRepository, CardService cardService){
+        this.cardRepository = cardRepository;
+        this.accountRepository = accountRepository;
+        this.cardService = cardService;
+    }
 
     @PostMapping("/create")
     public ResponseEntity<String> createCard(@RequestBody CardRequestDto body) {
