@@ -1,11 +1,11 @@
 package com.example.my_bank_backend.controllers;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +27,8 @@ import com.example.my_bank_backend.repositories.InvoiceRepository;
 @RestController
 @RequestMapping("/invoice")
 public class InvoiceController {
+
+  Logger logger = Logger.getLogger(InvoiceController.class.getName());
 
   private CardRepository cardRepository;
   private InvoiceRepository invoiceRepository;
@@ -55,7 +57,6 @@ public class InvoiceController {
       newInvoice.setInvoiceDescription(invoiceDto.invoiceDescription());
 
       newInvoice.setCardName(card.getCardName());
-      ;
 
       newInvoice.setAmount(invoiceDto.amount());
 
@@ -77,53 +78,38 @@ public class InvoiceController {
     }
   }
 
-  // Novo endpoint para buscar o valor atual da fatura
-  @GetMapping("/current/{cardId}")
-  public ResponseEntity<BigDecimal> getCurrentInvoice(@PathVariable Long cardId) {
-    // Verificar se o cartão existe
-    Optional<Card> optCard = cardRepository.findById(cardId);
-
-    if (optCard.isPresent()) {
-      // Obter todas as faturas não pagas do cartão e calcular o valor total
-      List<Invoice> invoices = invoiceRepository.findByCardAndInvoiceStatus(optCard.get(), "Pendente");
-      BigDecimal totalAmount = invoices.stream()
-          .map(invoice -> BigDecimal.valueOf(invoice.getAmount())) // Converte double para BigDecimal
-          .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-      return ResponseEntity.ok(totalAmount);
-    } else {
-      return ResponseEntity.badRequest().body(BigDecimal.ZERO);
-    }
-  }
-
   @PostMapping("/addvalue/{invoiceId}/{value}")
   public ResponseEntity<String> addValue(@PathVariable Long invoiceId, @PathVariable Double value) {
+
     Optional<Invoice> optInvoice = invoiceRepository.findById(invoiceId);
 
-    LocalDate now = LocalDate.now();
-    int currentMonth = now.getMonthValue();
-    int currentYear = now.getYear();
-
-    Invoice existingInvoices = invoiceRepository.findByDate(date);
-
-    if (!existingInvoices.isEmpty()) {
-      // Se já houver uma fatura, adicionar o valor à fatura existente
-      Invoice existingInvoice = existingInvoices.get(0);
-
-      // Supondo que InvoiceRequestDto.amount() retorna um valor primitivo double
-      Double amountToAdd = value;
-      Double existingAmount = existingInvoice.getAmount();
-
-      // Adiciona os valores e atualiza a fatura
-      Double newAmount = amountToAdd + existingAmount;
-      existingInvoice.setAmount(newAmount);
-
-      // Salva a fatura atualizada
-      invoiceRepository.save(existingInvoice);
-      return ResponseEntity.ok("Valor adicionado à fatura existente!");
-
+    if (optInvoice.isEmpty()) {
+      return ResponseEntity.notFound().build();
     }
 
-    return ResponseEntity.notFound().build();
+    Invoice existingInvoice = optInvoice.get();
+    Date invoiceDate = existingInvoice.getInvoiceDate();
+
+    LocalDate invoiceLocalDate = new java.sql.Date(invoiceDate.getTime()).toLocalDate();
+    int invoiceMonth = invoiceLocalDate.getMonthValue();
+    int invoiceYear = invoiceLocalDate.getYear();
+
+    List<Invoice> invoices = invoiceRepository.findByDateMonthAndYear(invoiceMonth, invoiceYear);
+
+    Optional<Invoice> matchingInvoice = invoices.stream()
+        .filter(invoice -> invoice.getId().equals(invoiceId))
+        .findFirst();
+
+    if (matchingInvoice.isEmpty()) {
+      return ResponseEntity.badRequest().body("Fatura não corresponde ao mês e ano fornecidos.");
+    }
+
+    Double existingAmount = existingInvoice.getAmount();
+    Double newAmount = existingAmount + value;
+
+    existingInvoice.setAmount(newAmount);
+    invoiceRepository.save(existingInvoice);
+
+    return ResponseEntity.ok("Valor adicionado à fatura existente!");
   }
 }
