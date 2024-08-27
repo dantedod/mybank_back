@@ -16,4 +16,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
   @Query("SELECT i FROM Invoice i WHERE EXTRACT(MONTH FROM i.invoiceDate) = :month AND EXTRACT(YEAR FROM i.invoiceDate) = :year")
   List<Invoice> findByDateMonthAndYear(@Param("month") int month, @Param("year") int year);
 
+  boolean existsByCard(Card card);
+
 }
