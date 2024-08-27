@@ -112,4 +112,16 @@ public class InvoiceController {
 
     return ResponseEntity.ok("Valor adicionado à fatura existente!");
   }
+
+  @GetMapping("/{invoiceId}")
+  public ResponseEntity<Long> getInvoiceId(@PathVariable Long invoiceId) {
+
+    Optional<Invoice> invoice = this.invoiceRepository.findById(invoiceId);
+
+    if (invoice.isPresent()) {
+      return ResponseEntity.ok(invoice.get().getId());
+    } else {
+      return ResponseEntity.notFound().build();
+    }
+    }
 }
