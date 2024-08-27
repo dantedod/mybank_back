@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.card.Card;
+import com.example.my_bank_backend.domain.invoice.Invoice;
 import com.example.my_bank_backend.dto.CardRequestDto;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.CardRepository;
@@ -34,7 +35,7 @@ public class CardController {
     private CardService cardService;
 
     @Autowired
-    public CardController(CardRepository cardRepository, AccountRepository accountRepository, CardService cardService){
+    public CardController(CardRepository cardRepository, AccountRepository accountRepository, CardService cardService) {
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
         this.cardService = cardService;
@@ -76,4 +77,30 @@ public class CardController {
 
         return optCard.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @PostMapping("/buy/{cardId}")
+    public ResponseEntity<String> buyWithCard(@PathVariable Long cardId, @RequestBody Double purchaseAmount) {
+        Optional<Card> optCard = cardRepository.findById(cardId);
+
+        if (optCard.isPresent()) {
+            Card card = optCard.get();
+            Account account = card.getAccount();
+
+            if (account.getCreditLimit() - account.getUsedLimit() >= purchaseAmount) {
+                account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
+
+                card.setCardValue(card.getCardValue() - purchaseAmount);
+
+                cardRepository.save(card);
+                accountRepository.save(account);
+
+                return ResponseEntity.ok("Ok!");
+            } else {
+                return ResponseEntity.badRequest().body("deu ruim!");
+            }
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

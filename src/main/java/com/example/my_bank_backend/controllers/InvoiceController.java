@@ -48,34 +48,39 @@ public class InvoiceController {
   public ResponseEntity<String> createInvoice(@PathVariable Long cardId, @RequestBody InvoiceRequestDto invoiceDto) {
     Optional<Card> optCard = cardRepository.findById(cardId);
 
-    if (optCard.isPresent()) {
-      Card card = optCard.get();
-
-      Invoice newInvoice = new Invoice();
-      newInvoice.setCard(card);
-
-      newInvoice.setInvoiceDescription(invoiceDto.invoiceDescription());
-
-      newInvoice.setCardName(card.getCardName());
-
-      newInvoice.setAmount(invoiceDto.amount());
-
-      newInvoice.setEmail(invoiceDto.email());
-
-      Date invoiceDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-      newInvoice.setInvoiceDate(invoiceDate);
-
-      Date dueDate = Date.from(LocalDate.now().plusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant());
-      newInvoice.setDueDate(dueDate);
-
-      newInvoice.setInvoiceStatus(invoiceDto.invoiceStatus());
-
-      newInvoice.setCard(card);
-      invoiceRepository.save(newInvoice);
-      return ResponseEntity.ok("Fatura criada com sucesso!");
-    } else {
-      return ResponseEntity.badRequest().body("Cartão não encontrado!");
+    if (!optCard.isPresent()) {
+      return ResponseEntity.ok("Card not found!");
     }
+
+    Card card = optCard.get();
+
+    boolean existsInvoice = invoiceRepository.existsByCard(card);
+    if (existsInvoice) {
+      return ResponseEntity.badRequest().body("An invoice already exists for this card");
+    }
+
+    LocalDate minAllowedDate = LocalDate.of(2024, 1, 1);
+    LocalDate currentDate = LocalDate.now();
+
+    if (currentDate.isBefore(minAllowedDate)) {
+      return ResponseEntity.badRequest().body("You cannot create an invoice before the minimum allowed date!");
+    }
+
+    Invoice newInvoice = new Invoice();
+    newInvoice.setCard(card);
+    newInvoice.setInvoiceDescription(invoiceDto.invoiceDescription());
+    newInvoice.setCardName(card.getCardName());
+    newInvoice.setAmount(invoiceDto.amount());
+    newInvoice.setEmail(invoiceDto.email());
+
+    Date invoiceDate = Date.from(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    newInvoice.setInvoiceDate(invoiceDate);
+
+    Date dueDate = Date.from(currentDate.plusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    newInvoice.setDueDate(dueDate);
+
+    newInvoice.setInvoiceStatus(invoiceDto.invoiceStatus());
+    return ResponseEntity.ok("Successful invoice creation");
   }
 
   @PostMapping("/addvalue/{invoiceId}/{value}")
