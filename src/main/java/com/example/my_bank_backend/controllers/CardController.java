@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.card.Card;
-import com.example.my_bank_backend.domain.invoice.Invoice;
 import com.example.my_bank_backend.dto.CardRequestDto;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.CardRepository;
