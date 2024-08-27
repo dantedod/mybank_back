@@ -119,12 +119,12 @@ public class InvoiceController {
   }
 
   @GetMapping("/{invoiceId}")
-  public ResponseEntity<Long> getInvoiceId(@PathVariable Long invoiceId) {
+  public ResponseEntity<Invoice> getInvoiceById(@PathVariable Long invoiceId) {
 
     Optional<Invoice> invoice = this.invoiceRepository.findById(invoiceId);
 
     if (invoice.isPresent()) {
-      return ResponseEntity.ok(invoice.get().getId());
+      return ResponseEntity.ok(invoice.get());
     } else {
       return ResponseEntity.notFound().build();
     }
