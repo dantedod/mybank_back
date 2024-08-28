@@ -18,4 +18,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
   boolean existsByCard(Card card);
 
+
+  List<Invoice> findInvoicesByCardId(Long cardId);
 }
