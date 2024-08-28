@@ -80,6 +80,9 @@ public class InvoiceController {
     newInvoice.setDueDate(dueDate);
 
     newInvoice.setInvoiceStatus(invoiceDto.invoiceStatus());
+
+    invoiceRepository.save(newInvoice);
+
     return ResponseEntity.ok("Successful invoice creation");
   }
 
@@ -128,5 +131,11 @@ public class InvoiceController {
     } else {
       return ResponseEntity.notFound().build();
     }
-    }
-}
+  }
+
+  @GetMapping("/card/{cardId}")
+  public ResponseEntity<List<Invoice>> getInvoicesByCardId(@PathVariable Long cardId) {
+    List<Invoice> invoices = invoiceRepository.findInvoicesByCardId(cardId);
+    return ResponseEntity.ok(invoices);
+  }
+} 
