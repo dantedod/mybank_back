@@ -9,4 +9,7 @@ import com.example.my_bank_backend.domain.card.Card;
 
 public interface CardRepository extends JpaRepository<Card, Long> {
     Optional<Card> findByCardNumberAndAccount(String cardNumber, Account account);
+
+    Optional<Card> findCardByAccountCpf(String accountCpf);
+
 }
