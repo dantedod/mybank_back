@@ -81,8 +81,6 @@ public class InvoiceController {
 
     newInvoice.setInvoiceStatus(invoiceDto.invoiceStatus());
 
-    invoiceRepository.save(newInvoice);
-
     return ResponseEntity.ok("Successful invoice creation");
   }
 
@@ -138,4 +136,4 @@ public class InvoiceController {
     List<Invoice> invoices = invoiceRepository.findInvoicesByCardId(cardId);
     return ResponseEntity.ok(invoices);
   }
-} 
+}
