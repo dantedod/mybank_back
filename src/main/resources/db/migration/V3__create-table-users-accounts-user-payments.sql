@@ -27,7 +27,7 @@ CREATE TABLE
         id BIGSERIAL PRIMARY KEY,
         sender_account_id BIGINT NOT NULL,
         receiver_account_id BIGINT NOT NULL,
-        transaction_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        transaction_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         amount DOUBLE PRECISION NOT NULL,
         payment_description TEXT,
         transaction_type VARCHAR(10) NOT NULL,
