@@ -41,7 +41,7 @@ public class TransactionService {
         }
 
         senderAccount.setAccountValue(senderAccount.getAccountValue() - amount);
-        senderAccount.setAccountValue(receiverAccount.getAccountValue() + amount);
+        receiverAccount.setAccountValue(receiverAccount.getAccountValue() + amount);
 
         accountRepository.save(senderAccount);
         accountRepository.save(receiverAccount);
