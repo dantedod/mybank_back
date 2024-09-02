@@ -14,13 +14,12 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-  public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-    this.userRepository = userRepository;
-    this.passwordEncoder = passwordEncoder;
-  }
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public boolean updateUser(ConfigDetailsDto requestDto) {
-        // Assume user is fetched from the repository
         User user = userRepository.findByCpf(requestDto.cpf()).orElse(null);
         if (user == null) {
             return false;
