@@ -37,7 +37,7 @@ public class TransactionController {
             );
             return ResponseEntity.ok("Successful transaction creation");
         } catch (IllegalArgumentException e){
-            return ResponseEntity.badRequest().body("Unable to create a transaction");
+            return ResponseEntity.badRequest().body("Unable to create a transaction " + e);
         }
     }
 }
