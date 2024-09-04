@@ -43,8 +43,8 @@ public class TransactionController {
         try {
             TransactionEnum transactionType = transactionRequestDto.transactionType();
             transactionService.processTransaction(
-                    transactionRequestDto.senderAccountId(),
-                    transactionRequestDto.receiverAccountId(),
+                    transactionRequestDto.cpfSender(),
+                    transactionRequestDto.cpfReceiver(),
                     transactionRequestDto.amount(),
                     transactionRequestDto.paymentDescription(),
                     transactionType);
