@@ -27,13 +27,13 @@ public class TransactionService {
     }
 
     @Transactional
-    public Transaction processTransaction(Long senderAccountId, Long receiverAccountId, Double amount,
+    public Transaction processTransaction(String cpfSender, String cpfReceiver, Double amount,
             String paymentDescription, TransactionEnum transactionType) {
 
-        Account senderAccount = accountRepository.findById(senderAccountId)
+        Account senderAccount = accountRepository.findByCpf(cpfSender)
                 .orElseThrow(() -> new IllegalArgumentException("Sender not found"));
 
-        Account receiverAccount = accountRepository.findById(receiverAccountId)
+        Account receiverAccount = accountRepository.findByCpf(cpfReceiver)
                 .orElseThrow(() -> new IllegalArgumentException("Receiver not found"));
 
         if (senderAccount.getAccountValue() < amount) {
