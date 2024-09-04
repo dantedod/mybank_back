@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,4 +47,13 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionEnum transactionType;
 
+    @Transient
+    public String getSenderAccountCpf() {
+        return senderAccountId != null ? senderAccountId.getCpf() : null;
+    }
+
+    @Transient
+    public String getReceiverAccountCpf() {
+        return receiverAccountId != null ? receiverAccountId.getCpf() : null;
+    }
 }
