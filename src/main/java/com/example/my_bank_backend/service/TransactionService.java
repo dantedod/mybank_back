@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.enums.TransactionEnum;
 import com.example.my_bank_backend.domain.transaction.Transaction;
+import com.example.my_bank_backend.dto.TransactionResponseDto;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.TransactionRepository;
 
@@ -27,7 +28,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public Transaction processTransaction(String cpfSender, String cpfReceiver, Double amount,
+    public TransactionResponseDto processTransaction(String cpfSender, String cpfReceiver, Double amount,
             String paymentDescription, TransactionEnum transactionType) {
 
         Account senderAccount = accountRepository.findByCpf(cpfSender)
@@ -37,7 +38,7 @@ public class TransactionService {
                 .orElseThrow(() -> new IllegalArgumentException("Receiver not found"));
 
         if (senderAccount.getAccountValue() < amount) {
-            throw new IllegalArgumentException("Insufficients funds");
+            throw new IllegalArgumentException("Insufficient funds");
         }
 
         senderAccount.setAccountValue(senderAccount.getAccountValue() - amount);
@@ -54,6 +55,15 @@ public class TransactionService {
         transaction.setTransactionDate(LocalDateTime.now());
         transaction.setTransactionType(transactionType);
 
-        return transactionRepository.save(transaction);
+        Transaction savedTransaction = transactionRepository.save(transaction);
+
+        return new TransactionResponseDto(
+                savedTransaction.getId(),
+                senderAccount.getCpf(),
+                receiverAccount.getCpf(),
+                savedTransaction.getAmount(),
+                savedTransaction.getPaymentDescription(),
+                savedTransaction.getTransactionDate(),
+                savedTransaction.getTransactionType());
     }
 }
