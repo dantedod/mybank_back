@@ -63,8 +63,7 @@ public class TransactionController {
         if (optAccount.isPresent()) {
             Account account = optAccount.get();
 
-            List<Transaction> transactions = transactionRepository.findBySenderAccountIdOrReceiverAccountId(account,
-                    account);
+            List<Transaction> transactions = transactionRepository.findBySenderAccountIdOrReceiverAccountId(account, account);
 
             if (transactions.isEmpty()) {
                 return ResponseEntity.noContent().build();
@@ -73,11 +72,14 @@ public class TransactionController {
                         .map(tx -> new TransactionResponseDto(
                                 tx.getId(),
                                 tx.getSenderAccountCpf(),
+                                tx.getSenderAccountId().getUser().getName(),
                                 tx.getReceiverAccountCpf(),
+                                tx.getReceiverAccountId().getUser().getName(),
                                 tx.getAmount(),
                                 tx.getPaymentDescription(),
                                 tx.getTransactionDate(),
-                                tx.getTransactionType()))
+                                tx.getTransactionType()
+                        ))
                         .collect(Collectors.toList());
                 return ResponseEntity.ok(responseDtos);
             }

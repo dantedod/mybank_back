@@ -60,7 +60,9 @@ public class TransactionService {
         return new TransactionResponseDto(
                 savedTransaction.getId(),
                 senderAccount.getCpf(),
+                senderAccount.getUser().getName(),
                 receiverAccount.getCpf(),
+                receiverAccount.getUser().getName(),
                 savedTransaction.getAmount(),
                 savedTransaction.getPaymentDescription(),
                 savedTransaction.getTransactionDate(),
