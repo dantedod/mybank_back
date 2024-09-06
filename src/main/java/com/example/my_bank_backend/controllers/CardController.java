@@ -1,5 +1,6 @@
 package com.example.my_bank_backend.controllers;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,78 +28,76 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CardController {
 
-    private CardRepository cardRepository;
+  private CardRepository cardRepository;
 
-    private AccountRepository accountRepository;
+  private AccountRepository accountRepository;
 
-    private CardService cardService;
+  private CardService cardService;
 
-    @Autowired
-    public CardController(CardRepository cardRepository, AccountRepository accountRepository, CardService cardService) {
-        this.cardRepository = cardRepository;
-        this.accountRepository = accountRepository;
-        this.cardService = cardService;
+  @Autowired
+  public CardController(CardRepository cardRepository, AccountRepository accountRepository, CardService cardService) {
+    this.cardRepository = cardRepository;
+    this.accountRepository = accountRepository;
+    this.cardService = cardService;
+  }
+
+  @PostMapping("/create")
+  public ResponseEntity<String> createCard(@RequestBody CardRequestDto body) {
+
+    Optional<Account> optAccount = accountRepository.findByCpf(body.accountCpf());
+    if (optAccount.isPresent()) {
+      Account account = optAccount.get();
+
+      Optional<Card> existingCard = cardRepository.findByCardNumberAndAccount(body.cardNumber(), account);
+      if (existingCard.isPresent()) {
+        return ResponseEntity.badRequest().body("Já existe um cartão associada a essa conta!");
+      }
+
+      Card card = new Card();
+      card.setCardName(body.cardName());
+      card.setCardNumber(cardService.generateCardNumber());
+      card.setCardPassword(body.cardPassword());
+      card.setCvv(Integer.parseInt(cardService.generateCvv()));
+      card.setCardValue(body.cardValue());
+      card.setExpirationDate("10/2030");
+      card.setCardStatus("Ativo");
+
+      card.setAccount(account);
+      cardRepository.save(card);
+      return ResponseEntity.ok("Cartão criado com sucesso!");
+    } else {
+      return ResponseEntity.badRequest().body("Fudeu, conta não encontrada!");
     }
+  }
 
-    @PostMapping("/create")
-    public ResponseEntity<String> createCard(@RequestBody CardRequestDto body) {
+  @GetMapping("/{accountCpf}")
+  public ResponseEntity<List<Card>> getCardByAccountCpf(@PathVariable String accountCpf) {
+    List<Card> cards = cardRepository.findCardsByAccountCpf(accountCpf);
+    return ResponseEntity.ok(cards);
+  }
 
-        Optional<Account> optAccount = accountRepository.findById(body.accountId());
+  @PostMapping("/buy/{cardId}")
+  public ResponseEntity<String> buyWithCard(@PathVariable Long cardId, @RequestBody Double purchaseAmount) {
+    Optional<Card> optCard = cardRepository.findById(cardId);
 
-        if (optAccount.isPresent()) {
-            Account account = optAccount.get();
+    if (optCard.isPresent()) {
+      Card card = optCard.get();
+      Account account = card.getAccount();
 
-            Optional<Card> existingCard = cardRepository.findByCardNumberAndAccount(body.cardNumber(), account);
-            if (existingCard.isPresent()) {
-                return ResponseEntity.badRequest().body("Já existe um cartão associada a essa conta!");
-            }
+      if (account.getCreditLimit() - account.getUsedLimit() >= purchaseAmount) {
+        account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
 
-            Card card = new Card();
-            card.setCardName(body.cardName());
-            card.setCardNumber(cardService.generateCardNumber());
-            card.setCardPassword(body.cardPassword());
-            card.setCvv(Integer.parseInt(cardService.generateCvv()));
-            card.setCardValue(body.cardValue());
-            card.setExpirationDate("10/2030");
-            card.setCardStatus("Ativo");
+        card.setCardValue(card.getCardValue() - purchaseAmount);
 
-            card.setAccount(account);
-            cardRepository.save(card);
-            return ResponseEntity.ok("Cartão criado com sucesso!");
-        } else {
-            return ResponseEntity.badRequest().body("Fudeu, conta não encontrada!");
-        }
+        cardRepository.save(card);
+        accountRepository.save(account);
+
+        return ResponseEntity.ok("Ok!");
+      } else {
+        return ResponseEntity.badRequest().body("deu ruim!");
+      }
+    } else {
+      return ResponseEntity.notFound().build();
     }
-
-    @GetMapping("/{cardId}")
-    public ResponseEntity<Card> getCardById(@PathVariable Long cardId) {
-        Optional<Card> optCard = cardRepository.findById(cardId);
-
-        return optCard.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @PostMapping("/buy/{cardId}")
-    public ResponseEntity<String> buyWithCard(@PathVariable Long cardId, @RequestBody Double purchaseAmount) {
-        Optional<Card> optCard = cardRepository.findById(cardId);
-
-        if (optCard.isPresent()) {
-            Card card = optCard.get();
-            Account account = card.getAccount();
-
-            if (account.getCreditLimit() - account.getUsedLimit() >= purchaseAmount) {
-                account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
-
-                card.setCardValue(card.getCardValue() - purchaseAmount);
-
-                cardRepository.save(card);
-                accountRepository.save(account);
-
-                return ResponseEntity.ok("Ok!");
-            } else {
-                return ResponseEntity.badRequest().body("deu ruim!");
-            }
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
+  }
 }

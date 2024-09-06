@@ -1,7 +1,7 @@
 package com.example.my_bank_backend.dto;
 
 public record CardRequestDto(
-    Long accountId,
+    String accountCpf,  
     String cardName,
     String cardNumber,
     String cardPassword,
