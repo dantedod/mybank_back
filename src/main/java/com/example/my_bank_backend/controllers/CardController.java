@@ -42,32 +42,9 @@ public class CardController {
   }
 
   @PostMapping("/create")
-  public ResponseEntity<String> createCard(@RequestBody CardRequestDto body) {
-
-    Optional<Account> optAccount = accountRepository.findByCpf(body.accountCpf());
-    if (optAccount.isPresent()) {
-      Account account = optAccount.get();
-
-      Optional<Card> existingCard = cardRepository.findByCardNumberAndAccount(body.cardNumber(), account);
-      if (existingCard.isPresent()) {
-        return ResponseEntity.badRequest().body("Já existe um cartão associada a essa conta!");
-      }
-
-      Card card = new Card();
-      card.setCardName(body.cardName());
-      card.setCardNumber(cardService.generateCardNumber());
-      card.setCardPassword(body.cardPassword());
-      card.setCvv(Integer.parseInt(cardService.generateCvv()));
-      card.setCardValue(body.cardValue());
-      card.setExpirationDate("10/2030");
-      card.setCardStatus("Ativo");
-
-      card.setAccount(account);
-      cardRepository.save(card);
-      return ResponseEntity.ok("Cartão criado com sucesso!");
-    } else {
-      return ResponseEntity.badRequest().body("Fudeu, conta não encontrada!");
-    }
+  public ResponseEntity<CardRequestDto> createCard(@RequestBody CardRequestDto cardRequestDto) {
+    return cardService.createCard(cardRequestDto.accountCpf(), cardRequestDto.cardName(), cardRequestDto.cardPassword(),
+        cardRequestDto.cardValue());
   }
 
   @GetMapping("/{accountCpf}")
