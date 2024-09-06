@@ -6,9 +6,9 @@ import com.example.my_bank_backend.domain.enums.TransactionEnum;
 
 public record TransactionResponseDto(
         Long id,
-        String senderCpf,
+        String cpfSender,
         String senderName,
-        String receiverCpf,
+        String cpfReceiver,
         String receiverName,
         Double amount,
         String paymentDescription,
