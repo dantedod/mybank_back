@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,21 +30,21 @@ import lombok.RequiredArgsConstructor;
 public class CardController {
 
   private CardRepository cardRepository;
-
+  private final PasswordEncoder passwordEncoder;
   private AccountRepository accountRepository;
-
   private CardService cardService;
 
   @Autowired
-  public CardController(CardRepository cardRepository, AccountRepository accountRepository, CardService cardService) {
+  public CardController(CardRepository cardRepository, AccountRepository accountRepository, CardService cardService, PasswordEncoder passwordEncoder) {
     this.cardRepository = cardRepository;
     this.accountRepository = accountRepository;
     this.cardService = cardService;
+    this.passwordEncoder = passwordEncoder;
   }
 
   @PostMapping("/create")
   public ResponseEntity<CardRequestDto> createCard(@RequestBody CardRequestDto cardRequestDto) {
-    return cardService.createCard(cardRequestDto.accountCpf(), cardRequestDto.cardName(), cardRequestDto.cardPassword(),
+    return cardService.createCard(cardRequestDto.accountCpf(), cardRequestDto.cardName(), passwordEncoder.encode(cardRequestDto.cardPassword()),
         cardRequestDto.cardValue());
   }
 

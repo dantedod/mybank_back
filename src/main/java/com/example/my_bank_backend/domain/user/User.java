@@ -1,6 +1,7 @@
 package com.example.my_bank_backend.domain.user;
 
 import com.example.my_bank_backend.domain.account.Account;
+import com.example.my_bank_backend.dto.RegisterRequestDto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.CascadeType;
@@ -36,4 +37,13 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     private Account account;
+
+    public User(RegisterRequestDto registerRequestDto){
+        this.name = registerRequestDto.name(); 
+        this.email = registerRequestDto.email();
+        this.password = registerRequestDto.password(); 
+        this.phone = registerRequestDto.phone();
+        this.cpf = registerRequestDto.cpf();
+        this.birthdate = registerRequestDto.birthdate();
+    }
 }
