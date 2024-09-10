@@ -3,6 +3,7 @@ package com.example.my_bank_backend.domain.invoice;
 import java.util.Date;
 
 import com.example.my_bank_backend.domain.card.Card;
+import com.example.my_bank_backend.dto.InvoiceRequestDto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.CascadeType;
@@ -41,4 +42,14 @@ public class Invoice {
     @JoinColumn(name = "card_id", referencedColumnName = "id", nullable = false)
     @JsonBackReference
     private Card card;
+
+    public Invoice(InvoiceRequestDto invoiceRequestDto){
+        this.invoiceDescription = invoiceRequestDto.invoiceDescription();
+        this.amount = invoiceRequestDto.amount();
+        this.cardName = invoiceRequestDto.cardName();
+        this.invoiceDate = invoiceRequestDto.invoiceDate();
+        this.invoiceStatus = invoiceRequestDto.invoiceStatus();
+        this.dueDate = invoiceRequestDto.dueDate();
+        this.email = invoiceRequestDto.email();
+    }
 }
