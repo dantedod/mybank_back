@@ -2,7 +2,7 @@ package com.example.my_bank_backend.domain.invoice;
 
 import java.util.Date;
 
-import com.example.my_bank_backend.domain.card.Card;
+import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.dto.InvoiceRequestDto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -32,21 +32,19 @@ public class Invoice {
     private Long id;
     private String invoiceDescription;
     private Double amount;
-    private String cardName;
     private Date invoiceDate;
     private String invoiceStatus;
     private Date dueDate;
     private String email;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "card_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
     @JsonBackReference
-    private Card card;
+    private Account account;
 
     public Invoice(InvoiceRequestDto invoiceRequestDto){
         this.invoiceDescription = invoiceRequestDto.invoiceDescription();
         this.amount = invoiceRequestDto.amount();
-        this.cardName = invoiceRequestDto.cardName();
         this.invoiceDate = invoiceRequestDto.invoiceDate();
         this.invoiceStatus = invoiceRequestDto.invoiceStatus();
         this.dueDate = invoiceRequestDto.dueDate();

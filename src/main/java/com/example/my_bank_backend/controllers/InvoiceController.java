@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.my_bank_backend.domain.account.Account;
-import com.example.my_bank_backend.domain.card.Card;
 import com.example.my_bank_backend.domain.invoice.Invoice;
 import com.example.my_bank_backend.dto.InvoiceRequestDto;
 import com.example.my_bank_backend.repositories.AccountRepository;
@@ -49,21 +48,21 @@ public class InvoiceController {
     return ResponseEntity.ok(invoiceRepository.findAll());
   }
 
-  @PostMapping("/{cardId}/create")
-  public ResponseEntity<String> createInvoice(@PathVariable Long cardId, @RequestBody InvoiceRequestDto invoiceDto) {
-    Optional<Card> optCard = cardRepository.findById(cardId);
+  @PostMapping("/{accountId}/create")
+  public ResponseEntity<String> createInvoice(@PathVariable Long accountId, @RequestBody InvoiceRequestDto invoiceDto) {
+    Optional<Account> optAccount = accountRepository.findById(accountId);
 
-    if (!optCard.isPresent()) {
-      return ResponseEntity.badRequest().body("Card not found!");
+    if (!optAccount.isPresent()) {
+      return ResponseEntity.badRequest().body("Account not found!");
     }
 
-    Card card = optCard.get();
+    Account account = optAccount.get();
 
     LocalDate invoiceDate = LocalDate.now();
     int invoiceMonth = invoiceDate.getMonthValue();
     int invoiceYear = invoiceDate.getYear();
 
-    boolean existsInvoice = invoiceRepository.existsByCardAndMonthAndYear(card, invoiceMonth, invoiceYear);
+    boolean existsInvoice = invoiceRepository.existsByAccountdAndMonthAndYear(account, invoiceMonth, invoiceYear);
     if (existsInvoice) {
       return ResponseEntity.badRequest().body("An invoice already exists for this card for the given month and year");
     }
@@ -76,9 +75,8 @@ public class InvoiceController {
     }
 
     Invoice newInvoice = new Invoice();
-    newInvoice.setCard(card);
+    newInvoice.setAccount(account);
     newInvoice.setInvoiceDescription(invoiceDto.invoiceDescription());
-    newInvoice.setCardName(card.getCardName());
     newInvoice.setAmount(invoiceDto.amount());
     newInvoice.setEmail(invoiceDto.email());
 
@@ -146,34 +144,28 @@ public class InvoiceController {
     Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
 
     if (optAccount.isPresent()) {
-      Optional<Card> optCard = cardRepository.findCardByAccountCpf(accountCpf);
+      long accountId = optAccount.get().getId();
+      LocalDate currentDate = LocalDate.now();
+      int currentMonth = currentDate.getMonthValue();
+      int currentYear = currentDate.getYear();
 
-      if (optCard.isPresent()) {
-        Long cardId = optCard.get().getId();
+      List<Invoice> invoices = invoiceRepository.findByDateMonthAndYear(currentMonth, currentYear);
 
-        LocalDate currentDate = LocalDate.now();
-        int currentMonth = currentDate.getMonthValue();
-        int currentYear = currentDate.getYear();
+      Optional<Invoice> optInvoice = invoices.stream()
+          .filter(invoice -> invoice.getAccount().getId().equals(accountId))
+          .findFirst();
 
-        List<Invoice> invoices = invoiceRepository.findByDateMonthAndYear(currentMonth, currentYear);
-
-        Optional<Invoice> optInvoice = invoices.stream()
-            .filter(invoice -> invoice.getCard().getId().equals(cardId))
-            .findFirst();
-
-        if (optInvoice.isPresent()) {
-          return ResponseEntity.ok(optInvoice);
-        }
-        return ResponseEntity.notFound().build();
+      if (optInvoice.isPresent()) {
+        return ResponseEntity.ok(optInvoice);
       }
-      return ResponseEntity.badRequest().body(null);
+      return ResponseEntity.notFound().build();
     }
     return ResponseEntity.notFound().build();
   }
 
-    @GetMapping("/card/{cardId}")
-  public ResponseEntity<List<Invoice>> getInvoicesByCardId(@PathVariable Long cardId) {
-    List<Invoice> invoices = invoiceRepository.findInvoicesByCardId(cardId);
+  @GetMapping("/card/{accountId}")
+  public ResponseEntity<List<Invoice>> getInvoicesByCardId(@PathVariable Long accountId) {
+    List<Invoice> invoices = invoiceRepository.findInvoicesByAccountId(accountId);
     return ResponseEntity.ok(invoices);
   }
 }

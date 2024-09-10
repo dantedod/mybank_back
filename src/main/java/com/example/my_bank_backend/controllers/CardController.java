@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,8 +55,8 @@ public class CardController {
     return ResponseEntity.ok(cards);
   }
 
-  @PostMapping("/buy/{cardId}")
-  public ResponseEntity<String> buyWithCard(@PathVariable Long cardId, @RequestBody Double purchaseAmount) {
+  @PostMapping("/buy/{cardId}/{purchaseAmount}")
+  public ResponseEntity<String> buyWithCard(@PathVariable Long cardId, @PathVariable Double purchaseAmount) {
     Optional<Card> optCard = cardRepository.findById(cardId);
 
     if (optCard.isPresent()) {
@@ -78,4 +79,14 @@ public class CardController {
       return ResponseEntity.notFound().build();
     }
   }
+
+  @DeleteMapping("/{cardId}")
+public ResponseEntity<Void> deleteCard(@PathVariable Long cardId) {
+    if (!cardRepository.existsById(cardId)) {
+        return ResponseEntity.notFound().build();
+    }
+
+    cardRepository.deleteById(cardId);
+    return ResponseEntity.noContent().build();
+}
 }
