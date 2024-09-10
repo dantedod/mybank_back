@@ -3,6 +3,7 @@ package com.example.my_bank_backend.domain.account;
 import java.util.List;
 
 import com.example.my_bank_backend.domain.card.Card;
+import com.example.my_bank_backend.domain.invoice.Invoice;
 import com.example.my_bank_backend.domain.user.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -44,5 +45,9 @@ public class Account {
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Card> cards; // Alterado para uma lista de cartões
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Invoice> invoices; // Mudado para List<Invoice>
 
 }

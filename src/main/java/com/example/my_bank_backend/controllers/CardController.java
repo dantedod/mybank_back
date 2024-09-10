@@ -55,8 +55,8 @@ public class CardController {
     return ResponseEntity.ok(cards);
   }
 
-  @PostMapping("/buy/{cardId}")
-  public ResponseEntity<String> buyWithCard(@PathVariable Long cardId, @RequestBody Double purchaseAmount) {
+  @PostMapping("/buy/{cardId}/{purchaseAmount}")
+  public ResponseEntity<String> buyWithCard(@PathVariable Long cardId, @PathVariable Double purchaseAmount) {
     Optional<Card> optCard = cardRepository.findById(cardId);
 
     if (optCard.isPresent()) {
