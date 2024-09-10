@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,45 +31,22 @@ import lombok.RequiredArgsConstructor;
 public class CardController {
 
   private CardRepository cardRepository;
-
+  private final PasswordEncoder passwordEncoder;
   private AccountRepository accountRepository;
-
   private CardService cardService;
 
   @Autowired
-  public CardController(CardRepository cardRepository, AccountRepository accountRepository, CardService cardService) {
+  public CardController(CardRepository cardRepository, AccountRepository accountRepository, CardService cardService, PasswordEncoder passwordEncoder) {
     this.cardRepository = cardRepository;
     this.accountRepository = accountRepository;
     this.cardService = cardService;
+    this.passwordEncoder = passwordEncoder;
   }
 
   @PostMapping("/create")
-  public ResponseEntity<String> createCard(@RequestBody CardRequestDto body) {
-
-    Optional<Account> optAccount = accountRepository.findByCpf(body.accountCpf());
-    if (optAccount.isPresent()) {
-      Account account = optAccount.get();
-
-      Optional<Card> existingCard = cardRepository.findByCardNumberAndAccount(body.cardNumber(), account);
-      if (existingCard.isPresent()) {
-        return ResponseEntity.badRequest().body("Já existe um cartão associada a essa conta!");
-      }
-
-      Card card = new Card();
-      card.setCardName(body.cardName());
-      card.setCardNumber(cardService.generateCardNumber());
-      card.setCardPassword(body.cardPassword());
-      card.setCvv(Integer.parseInt(cardService.generateCvv()));
-      card.setCardValue(body.cardValue());
-      card.setExpirationDate("10/2030");
-      card.setCardStatus("Ativo");
-
-      card.setAccount(account);
-      cardRepository.save(card);
-      return ResponseEntity.ok("Cartão criado com sucesso!");
-    } else {
-      return ResponseEntity.badRequest().body("Fudeu, conta não encontrada!");
-    }
+  public ResponseEntity<CardRequestDto> createCard(@RequestBody CardRequestDto cardRequestDto) {
+    return cardService.createCard(cardRequestDto.accountCpf(), cardRequestDto.cardName(), passwordEncoder.encode(cardRequestDto.cardPassword()),
+        cardRequestDto.cardValue());
   }
 
   @GetMapping("/{accountCpf}")
