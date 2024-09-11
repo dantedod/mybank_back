@@ -1,4 +1,3 @@
--- V1__alter_users_id_to_bigint.sql
 CREATE TABLE
     IF NOT EXISTS cards (
         id BIGSERIAL PRIMARY KEY,

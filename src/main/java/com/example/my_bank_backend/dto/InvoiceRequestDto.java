@@ -9,6 +9,5 @@ public record InvoiceRequestDto(
     String invoiceStatus,
     Long id,
     Date dueDate,
-    String email
-    ) {
+    String email) {
 }

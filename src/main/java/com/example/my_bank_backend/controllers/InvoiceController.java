@@ -21,7 +21,6 @@ import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.invoice.Invoice;
 import com.example.my_bank_backend.dto.InvoiceRequestDto;
 import com.example.my_bank_backend.repositories.AccountRepository;
-import com.example.my_bank_backend.repositories.CardRepository;
 import com.example.my_bank_backend.repositories.InvoiceRepository;
 
 @CrossOrigin(origins = "http://localhost:4200")
@@ -31,14 +30,12 @@ public class InvoiceController {
 
   Logger logger = Logger.getLogger(InvoiceController.class.getName());
 
-  private CardRepository cardRepository;
   private InvoiceRepository invoiceRepository;
   private AccountRepository accountRepository;
 
   @Autowired
-  public InvoiceController(CardRepository cardRepository, InvoiceRepository invoiceRepository,
+  public InvoiceController(InvoiceRepository invoiceRepository,
       AccountRepository accountRepository) {
-    this.cardRepository = cardRepository;
     this.invoiceRepository = invoiceRepository;
     this.accountRepository = accountRepository;
   }

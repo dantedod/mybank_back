@@ -37,7 +37,6 @@ public class Card {
     @ManyToOne
     @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
     @JsonBackReference
-    private Account account; // Cada cartão pertence a uma única conta
-
+    private Account account;
 
 }
