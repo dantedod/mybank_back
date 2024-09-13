@@ -46,8 +46,8 @@ public class InvoiceController {
   }
 
   @PostMapping("/{accountId}/create")
-  public ResponseEntity<String> createInvoice(@PathVariable Long accountId, @RequestBody InvoiceRequestDto invoiceDto) {
-    Optional<Account> optAccount = accountRepository.findById(accountId);
+  public ResponseEntity<String> createInvoice(@PathVariable String accountId, @RequestBody InvoiceRequestDto invoiceDto) {
+    Optional<Account> optAccount = accountRepository.findByCpf(accountId);
 
     if (!optAccount.isPresent()) {
       return ResponseEntity.badRequest().body("Account not found!");
@@ -59,16 +59,17 @@ public class InvoiceController {
     int invoiceMonth = invoiceDate.getMonthValue();
     int invoiceYear = invoiceDate.getYear();
 
-    boolean existsInvoice = invoiceRepository.existsByAccountdAndMonthAndYear(account, invoiceMonth, invoiceYear);
-    if (existsInvoice) {
-      return ResponseEntity.badRequest().body("An invoice already exists for this card for the given month and year");
-    }
+    Optional<Invoice> existsInvoice = invoiceRepository.findByAccountAndMonthAndYear(account, invoiceMonth, invoiceYear);
 
     LocalDate minAllowedDate = LocalDate.of(2024, 1, 1);
     LocalDate currentDate = LocalDate.now();
 
     if (currentDate.isBefore(minAllowedDate)) {
       return ResponseEntity.badRequest().body("You cannot create an invoice before the minimum allowed date!");
+    }
+
+    if (existsInvoice.isPresent()){
+      return ResponseEntity.badRequest().body("Already exists an Invoice!");
     }
 
     Invoice newInvoice = new Invoice();
