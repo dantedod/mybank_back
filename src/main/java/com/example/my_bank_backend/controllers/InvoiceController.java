@@ -166,4 +166,37 @@ public class InvoiceController {
     List<Invoice> invoices = invoiceRepository.findInvoicesByAccountId(accountId);
     return ResponseEntity.ok(invoices);
   }
+
+  @PostMapping("/pay/{accountCpf}")
+  public ResponseEntity<String> payInvoice(@PathVariable String accountCpf) {
+
+    Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
+
+    Account account = optAccount.get();
+
+    if(optAccount.isEmpty()){
+      return ResponseEntity.notFound().build();
+    }
+
+    Optional<Invoice> optInvoice = invoiceRepository.findInvoiceByAccountId(account.getId());
+
+    Invoice payInvoice = optInvoice.get();
+
+    if(optInvoice.isEmpty()){
+      return ResponseEntity.notFound().build();
+    }
+
+    if(account.getAccountValue() < payInvoice.getAmount()){
+      return ResponseEntity.badRequest().body("You don't have any founds to pay this Invoice");
+    }
+
+    account.setAccountValue(account.getAccountValue() - payInvoice.getAmount());
+    account.setUsedLimit(account.getUsedLimit() - payInvoice.getAmount());
+    payInvoice.setAmount(account.getUsedLimit());
+
+    invoiceRepository.save(payInvoice);
+    accountRepository.save(account);
+
+    return ResponseEntity.ok("Invoice was payed");
+  }
 }
