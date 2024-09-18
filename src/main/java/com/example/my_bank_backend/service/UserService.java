@@ -1,6 +1,8 @@
 package com.example.my_bank_backend.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -13,16 +15,16 @@ public class UserService {
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public boolean updateUser(ConfigDetailsDto requestDto) {
+    public ResponseEntity<ConfigDetailsDto> updateUser(ConfigDetailsDto requestDto) {
         User user = userRepository.findByCpf(requestDto.cpf()).orElse(null);
+
         if (user == null) {
-            return false;
+            return ResponseEntity.notFound().build();
         }
 
         boolean updated = false;
@@ -44,8 +46,19 @@ public class UserService {
 
         if (updated) {
             userRepository.save(user);
+            return ResponseEntity.ok(requestDto);
+        } else {
+            return ResponseEntity.notFound().build();
         }
+    }
 
-        return updated;
+    public ResponseEntity<User> getUserByCpf(String cpf) {
+        Optional<User> optUser = this.userRepository.findByCpf(cpf);
+
+        if (optUser.isPresent()) {
+            return ResponseEntity.ok(optUser.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
