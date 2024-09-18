@@ -81,7 +81,7 @@ public class CardService {
         }
     }
 
-    public String generateCardNumber() {
+    private String generateCardNumber() {
         String cardNumber;
         do {
             cardNumber = String.format("%04d %04d %04d %04d",
@@ -95,7 +95,7 @@ public class CardService {
         return cardNumber;
     }
 
-    public String generateCvv() {
+    private String generateCvv() {
         String cvv;
         do {
             cvv = String.format("%03d", secureRandom.nextInt(1000));
