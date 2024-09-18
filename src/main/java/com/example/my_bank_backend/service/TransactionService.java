@@ -1,8 +1,11 @@
 package com.example.my_bank_backend.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.my_bank_backend.domain.account.Account;
@@ -17,11 +20,9 @@ import jakarta.transaction.Transactional;
 @Service
 public class TransactionService {
 
-    private AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
 
-    private TransactionRepository transactionRepository;
-
-    @Autowired
     public TransactionService(AccountRepository accountRepository, TransactionRepository transactionRepository) {
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
@@ -67,5 +68,47 @@ public class TransactionService {
                 savedTransaction.getPaymentDescription(),
                 savedTransaction.getTransactionDate(),
                 savedTransaction.getTransactionType());
+    }
+
+    public ResponseEntity<List<TransactionResponseDto>> getAllTransactionsByCpf(String cpf) {
+        Optional<Account> optAccount = accountRepository.findByCpf(cpf);
+
+        if (optAccount.isPresent()) {
+            Account account = optAccount.get();
+
+            List<Transaction> transactions = transactionRepository.findBySenderAccountIdOrReceiverAccountId(account,
+                    account);
+
+            if (transactions.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            } else {
+                List<TransactionResponseDto> responseDtos = transactions.stream()
+                        .map(tx -> new TransactionResponseDto(
+                                tx.getId(),
+                                tx.getSenderAccountCpf(),
+                                tx.getSenderAccountId().getUser().getName(),
+                                tx.getReceiverAccountCpf(),
+                                tx.getReceiverAccountId().getUser().getName(),
+                                tx.getAmount(),
+                                tx.getPaymentDescription(),
+                                tx.getTransactionDate(),
+                                tx.getTransactionType()))
+                        .collect(Collectors.toList());
+                return ResponseEntity.ok(responseDtos);
+            }
+        } else {
+            return ResponseEntity.noContent().build();
+        }
+    }
+
+    public ResponseEntity<Transaction> getTransactionByCpf(Long id) {
+
+        Optional<Transaction> transaction = transactionRepository.findById(id);
+
+        if (transaction.isPresent()) {
+            return ResponseEntity.ok(transaction.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
