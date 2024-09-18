@@ -14,16 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.my_bank_backend.domain.invoice.Invoice;
 import com.example.my_bank_backend.service.InvoiceService;
 
+import lombok.RequiredArgsConstructor;
+
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/invoice")
+@RequiredArgsConstructor
 public class InvoiceController {
 
   private final InvoiceService invoiceService;
-
-  public InvoiceController(InvoiceService invoiceService) {
-    this.invoiceService = invoiceService;
-  }
 
   @GetMapping
   public ResponseEntity<List<Invoice>> getAllInvoices() {

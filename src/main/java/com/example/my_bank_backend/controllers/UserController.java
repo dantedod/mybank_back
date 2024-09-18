@@ -13,16 +13,15 @@ import com.example.my_bank_backend.domain.user.User;
 import com.example.my_bank_backend.dto.ConfigDetailsDto;
 import com.example.my_bank_backend.service.UserService;
 
+import lombok.RequiredArgsConstructor;
+
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController {
 
   private final UserService userService;
-
-  public UserController(UserService userService) {
-    this.userService = userService;
-  }
 
   @GetMapping("/{cpf}")
   public ResponseEntity<User> getUserByCpf(@PathVariable String cpf) {

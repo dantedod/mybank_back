@@ -12,7 +12,7 @@ import com.example.my_bank_backend.repositories.AccountRepository;
 @Service
 public class AccountService {
 
-    private AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
 
     public AccountService(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;

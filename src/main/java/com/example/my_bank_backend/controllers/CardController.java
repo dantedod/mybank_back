@@ -2,7 +2,6 @@ package com.example.my_bank_backend.controllers;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -27,13 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class CardController {
 
   private final PasswordEncoder passwordEncoder;
-  private CardService cardService;
-
-  @Autowired
-  public CardController(CardService cardService, PasswordEncoder passwordEncoder) {
-    this.cardService = cardService;
-    this.passwordEncoder = passwordEncoder;
-  }
+  private final CardService cardService;
 
   @PostMapping("/create")
   public ResponseEntity<CardRequestDto> createCard(@RequestBody CardRequestDto cardRequestDto) {
