@@ -19,10 +19,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenServic) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.tokenService = tokenServic;
+        this.tokenService = tokenService;
     }
 
     public ResponseEntity<ResponseDto> login(String email, String password) {
