@@ -1,6 +1,7 @@
 package com.example.my_bank_backend.service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -84,7 +85,7 @@ public class InvoiceService {
         return ResponseEntity.notFound().build();
     }
 
-    public ResponseEntity<String> payInvoice(String accountCpf) {
+    public ResponseEntity<String> payInvoice(String accountCpf, Double payValue) {
         Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
 
         Account account = optAccount.get();
@@ -100,14 +101,14 @@ public class InvoiceService {
         if (optInvoice.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        LocalDate actualDay = LocalDate.now();
+        Date payDay = Date.from(actualDay.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        if (account.getAccountValue() < payInvoice.getAmount()) {
-            return ResponseEntity.badRequest().body("You don't have any founds to pay this Invoice");
+        if(payDay.compareTo(payInvoice.getDueDate()) <= 0){
+          account.setAccountValue(account.getAccountValue() - payValue);
+          payInvoice.setAmount(payInvoice.getAmount() - payValue);
+          account.setUsedLimit(payInvoice.getAmount());
         }
-
-        account.setAccountValue(account.getAccountValue() - payInvoice.getAmount());
-        account.setUsedLimit(account.getUsedLimit() - payInvoice.getAmount());
-        payInvoice.setAmount(account.getUsedLimit());
 
         invoiceRepository.save(payInvoice);
         accountRepository.save(account);
