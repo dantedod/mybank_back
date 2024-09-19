@@ -5,7 +5,7 @@ public record CardRequestDto(
     String cardName,
     String cardNumber,
     String cardPassword,
-    Integer cvv,
+    String cvv,
     Double cardValue,
     String expirationDate,
     String cardStatus) {
