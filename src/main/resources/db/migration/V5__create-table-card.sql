@@ -5,7 +5,7 @@ CREATE TABLE
         account_id BIGSERIAL,
         card_number VARCHAR(16) NOT NULL UNIQUE,
         card_password VARCHAR(4) NOT NULL,
-        cvv SMALLINT NOT NULL,
+        cvv VARCHAR(3) NOT NULL UNIQUE,
         card_value DOUBLE PRECISION NOT NULL,
         expiration_date VARCHAR(10) NOT NULL,
         card_status VARCHAR(20) DEFAULT 'ACTIVE',
