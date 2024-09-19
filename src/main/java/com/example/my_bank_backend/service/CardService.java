@@ -11,7 +11,6 @@ import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.card.Card;
@@ -105,13 +104,12 @@ public class CardService {
         return cvv;
     }
 
-    public ResponseEntity<List<Card>> getCardByAccountCpf(@PathVariable String accountCpf) {
+    public ResponseEntity<List<Card>> getCardByAccountCpf(String accountCpf) {
         List<Card> cards = cardRepository.findCardsByAccountCpf(accountCpf);
         return ResponseEntity.ok(cards);
     }
 
-    public ResponseEntity<String> buyWithCard(@PathVariable Long cardId, @PathVariable String accountCpf,
-            @PathVariable Double purchaseAmount) {
+    public ResponseEntity<String> buyWithCard(Long cardId, String accountCpf, Double purchaseAmount) {
         Optional<Card> optCard = cardRepository.findById(cardId);
         Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
 
@@ -171,7 +169,7 @@ public class CardService {
         return ResponseEntity.notFound().build();
     }
 
-    public ResponseEntity<Void> deleteCard(@PathVariable Long cardId) {
+    public ResponseEntity<Void> deleteCard(Long cardId) {
         if (!cardRepository.existsById(cardId)) {
             return ResponseEntity.notFound().build();
         }

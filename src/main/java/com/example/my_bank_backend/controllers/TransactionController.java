@@ -16,16 +16,15 @@ import com.example.my_bank_backend.dto.TransactionRequestDto;
 import com.example.my_bank_backend.dto.TransactionResponseDto;
 import com.example.my_bank_backend.service.TransactionService;
 
+import lombok.RequiredArgsConstructor;
+
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/transaction")
+@RequiredArgsConstructor
 public class TransactionController {
 
-    private TransactionService transactionService;
-
-    public TransactionController(TransactionService transactionService) {
-        this.transactionService = transactionService;
-    }
+    private final TransactionService transactionService;
 
     @PostMapping("/create")
     public ResponseEntity<TransactionResponseDto> createTransaction(

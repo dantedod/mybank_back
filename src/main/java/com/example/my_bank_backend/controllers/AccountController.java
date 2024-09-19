@@ -2,7 +2,6 @@ package com.example.my_bank_backend.controllers;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,12 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AccountController {
 
-    private AccountService accountService;
-
-    @Autowired
-    public AccountController(AccountService accountService){
-        this.accountService = accountService;
-    }
+    private final AccountService accountService;
 
     @GetMapping("/{cpf}")
     public ResponseEntity<Account> getAccountByCpf(@PathVariable String cpf) {
