@@ -29,7 +29,7 @@ public class Card {
     private String cardName;
     private String cardNumber;
     private String cardPassword;
-    private Integer cvv;
+    private String cvv;
     private Double cardValue;
     private String expirationDate;
     private String cardStatus;

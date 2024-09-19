@@ -36,6 +36,7 @@ public class Invoice {
     private String invoiceStatus;
     private Date dueDate;
     private String email;
+    private Date closingDate;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
