@@ -27,7 +27,7 @@ public class InvoiceService {
         return ResponseEntity.ok(invoiceRepository.findAll());
     }
 
-    public ResponseEntity<String> createOrUpdateInvoice(Account account, Double purchaseAmount, int invoiceMonth, int invoiceYear) {
+    public ResponseEntity<String> createInvoice(Account account, Double purchaseAmount, int invoiceMonth, int invoiceYear) {
         Optional<Invoice> existsInvoice = invoiceRepository.findByAccountAndMonthAndYear(account, invoiceMonth, invoiceYear);
         
         if (existsInvoice.isEmpty()) {
