@@ -8,18 +8,19 @@ import org.springframework.stereotype.Service;
 
 import com.example.my_bank_backend.domain.user.User;
 import com.example.my_bank_backend.dto.ConfigDetailsDto;
+import com.example.my_bank_backend.dto.ResponseDto;
 import com.example.my_bank_backend.repositories.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AccountService accountService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     public ResponseEntity<ConfigDetailsDto> updateUser(ConfigDetailsDto requestDto) {
         User user = userRepository.findByCpf(requestDto.cpf()).orElse(null);
@@ -62,4 +63,27 @@ public class UserService {
             return ResponseEntity.notFound().build();
         }
     }
+
+    public ResponseEntity<ResponseDto> register(String name, String email, String password, String phone, String cpf,
+            String birthDate) {
+
+        Optional<User> user = userRepository.findByEmail(email);
+
+        if (user.isEmpty()) {
+            User newUser = new User();
+            newUser.setPassword(passwordEncoder.encode(password));
+            newUser.setEmail(email);
+            newUser.setName(name);
+            newUser.setPhone(phone);
+            newUser.setCpf(cpf);
+            newUser.setBirthdate(birthDate);
+
+            newUser.setAccount(accountService.createAccountForUser(cpf, newUser));
+
+            this.userRepository.save(newUser);
+            return ResponseEntity.ok(new ResponseDto(null, newUser.getName(), newUser.getCpf()));
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
 }
