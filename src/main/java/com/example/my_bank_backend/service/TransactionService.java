@@ -16,17 +16,14 @@ import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.TransactionRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class TransactionService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
-
-    public TransactionService(AccountRepository accountRepository, TransactionRepository transactionRepository) {
-        this.accountRepository = accountRepository;
-        this.transactionRepository = transactionRepository;
-    }
 
     @Transactional
     public TransactionResponseDto processTransaction(String cpfSender, String cpfReceiver, Double amount,
