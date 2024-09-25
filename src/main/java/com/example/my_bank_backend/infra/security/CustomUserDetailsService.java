@@ -10,14 +10,13 @@ import org.springframework.stereotype.Component;
 import com.example.my_bank_backend.domain.user.User;
 import com.example.my_bank_backend.repositories.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    UserRepository userRepository;
-
-    public CustomUserDetailsService(UserRepository userRepository){
-        this.userRepository = userRepository;
-    }
+    private final UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
