@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.my_bank_backend.dto.LoginRequestDto;
 import com.example.my_bank_backend.dto.RegisterRequestDto;
 import com.example.my_bank_backend.dto.ResponseDto;
-import com.example.my_bank_backend.service.AuthService;
+import com.example.my_bank_backend.service.AuthenticationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,21 +20,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthenticationService authenticationService;
 
     @PostMapping("/login")
     public ResponseEntity<ResponseDto> login(@RequestBody LoginRequestDto body) {
-        return authService.login(body.email(), body.password());
+        return authenticationService.login(body);
     }
 
     @PostMapping("/register")
     public ResponseEntity<ResponseDto> register(@RequestBody RegisterRequestDto body) {
-        return authService.register(body.name(),
-                body.email(),
-                body.password(),
-                body.phone(),
-                body.cpf(),
-                body.birthdate());
+        return authenticationService.register(body);
     }
 
 }
