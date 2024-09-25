@@ -123,7 +123,7 @@ public class CardService {
                 accountRepository.save(account);
 
                 // Usar InvoiceService para criar ou atualizar a fatura
-                return invoiceService.createOrUpdateInvoice(account, purchaseAmount, LocalDate.now().getMonthValue(), LocalDate.now().getYear());
+                return invoiceService.createInvoice(account, purchaseAmount, LocalDate.now().getMonthValue(), LocalDate.now().getYear());
             }
             return ResponseEntity.badRequest().body("Insufficient limit!");
         }
