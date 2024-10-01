@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.my_bank_backend.domain.account.Account;
@@ -30,24 +31,27 @@ public class CardService {
     private final AccountRepository accountRepository;
     private final CardRepository cardRepository;
     private final InvoiceService invoiceService;
+    private final PasswordEncoder passwordEncoder;
 
-    public ResponseEntity<CardRequestDto> createCard(String accountCpf, String cardName, String cardPassword, Double cardValue) {
+    public ResponseEntity<CardRequestDto> createCard(String accountCpf, String cardName, String cardPassword,
+            Double cardValue) {
         Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
 
         if (optAccount.isPresent()) {
             Account account = optAccount.get();
 
-            Optional<Card> existingCard = cardRepository.findByCardNumberAndAccount(generateCardNumber(), account);
+            String cardNumber = generateCardNumber();
+
+            Optional<Card> existingCard = cardRepository.findByCardNumberAndAccount(cardNumber, account);
             if (existingCard.isPresent()) {
                 return ResponseEntity.badRequest().body(null);
             }
 
-            String cardNumber = generateCardNumber();
             String cvv = generateCvv();
             Card card = new Card();
             card.setCardName(cardName);
             card.setCardNumber(cardNumber);
-            card.setCardPassword(cardPassword);
+            card.setCardPassword(passwordEncoder.encode(cardPassword));
             card.setCvv(cvv);
             card.setCardValue(cardValue);
             card.setExpirationDate("10/2030");
@@ -57,14 +61,14 @@ public class CardService {
             cardRepository.save(card);
 
             CardRequestDto cardDto = new CardRequestDto(
-                accountCpf,
-                cardName,
-                cardNumber,
-                cardPassword,
-                cvv,
-                cardValue,
-                "10/2030",
-                "Ativo");
+                    accountCpf,
+                    cardName,
+                    cardNumber,
+                    cardPassword,
+                    cvv,
+                    cardValue,
+                    "10/2030",
+                    "Ativo");
 
             return ResponseEntity.ok(cardDto);
         } else {
@@ -76,10 +80,10 @@ public class CardService {
         String cardNumber;
         do {
             cardNumber = String.format("%04d %04d %04d %04d",
-                secureRandom.nextInt(10000),
-                secureRandom.nextInt(10000),
-                secureRandom.nextInt(10000),
-                secureRandom.nextInt(10000));
+                    secureRandom.nextInt(10000),
+                    secureRandom.nextInt(10000),
+                    secureRandom.nextInt(10000),
+                    secureRandom.nextInt(10000));
         } while (generatedCards.contains(cardNumber));
 
         generatedCards.add(cardNumber);
@@ -111,19 +115,18 @@ public class CardService {
 
         Account account = optAccount.get();
 
-        // Verificar limite e realizar a compra
         if (optCard.isPresent()) {
             Card card = optCard.get();
 
             if (account.getCreditLimit() - account.getUsedLimit() >= purchaseAmount) {
                 account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
                 card.setCardValue(card.getCardValue() - purchaseAmount);
-                
+
                 cardRepository.save(card);
                 accountRepository.save(account);
 
-                // Usar InvoiceService para criar ou atualizar a fatura
-                return invoiceService.createInvoice(account, purchaseAmount, LocalDate.now().getMonthValue(), LocalDate.now().getYear());
+                return invoiceService.createInvoice(account, purchaseAmount, LocalDate.now().getMonthValue(),
+                        LocalDate.now().getYear());
             }
             return ResponseEntity.badRequest().body("Insufficient limit!");
         }
