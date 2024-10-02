@@ -31,7 +31,6 @@ public class InvoiceService {
         Optional<Invoice> existsInvoice = invoiceRepository.findByAccountAndMonthAndYear(account, invoiceMonth, invoiceYear);
         
         if (existsInvoice.isEmpty()) {
-            // Criação de uma nova fatura
             Invoice newInvoice = new Invoice();
             newInvoice.setAccount(account);
             newInvoice.setAmount(purchaseAmount);
@@ -45,7 +44,6 @@ public class InvoiceService {
             invoiceRepository.save(newInvoice);
             return ResponseEntity.ok("Invoice created");
         } else {
-            // Atualização da fatura existente
             Invoice existingInvoice = existsInvoice.get();
             existingInvoice.setAmount(existingInvoice.getAmount() + purchaseAmount);
             invoiceRepository.save(existingInvoice);
