@@ -1,11 +1,11 @@
 package com.example.my_bank_backend.dto;
 
-import com.example.my_bank_backend.domain.enums.TransactionEnum;
+import java.time.LocalDateTime;
 
 public record TransactionRequestDto(
-        String cpfSender,
-        String cpfReceiver,
+        Long accountId,
+        Long cardId,
         Double amount,
         String paymentDescription,
-        TransactionEnum transactionType) {
+        LocalDateTime transactionDate) {
 }
