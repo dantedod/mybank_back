@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.my_bank_backend.domain.transaction.Transaction;
 import com.example.my_bank_backend.dto.TransactionRequestDto;
 import com.example.my_bank_backend.dto.TransactionResponseDto;
 import com.example.my_bank_backend.service.TransactionService;
@@ -25,26 +24,20 @@ import lombok.RequiredArgsConstructor;
 public class TransactionController {
 
     private final TransactionService transactionService;
-
+    
     @PostMapping("/create")
     public ResponseEntity<TransactionResponseDto> createTransaction(
             @RequestBody TransactionRequestDto transactionRequestDto) {
         TransactionResponseDto response = transactionService.processTransaction(
-                transactionRequestDto.cpfSender(),
-                transactionRequestDto.cpfReceiver(),
+                transactionRequestDto.accountId(),
+                transactionRequestDto.cardId(),
                 transactionRequestDto.amount(),
-                transactionRequestDto.paymentDescription(),
-                transactionRequestDto.transactionType());
+                transactionRequestDto.paymentDescription());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{cpf}")
     public ResponseEntity<List<TransactionResponseDto>> getAllTransactionsByCpf(@PathVariable String cpf) {
         return transactionService.getAllTransactionsByCpf(cpf);
-    }
-
-    @GetMapping("/id/{id}")
-    public ResponseEntity<Transaction> getTransactionByCpf(@PathVariable Long id) {
-        return transactionService.getTransactionByCpf(id);
     }
 }
