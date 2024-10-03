@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.card.Card;
 import com.example.my_bank_backend.dto.CardRequestDto;
+import com.example.my_bank_backend.dto.TransactionResponseDto;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.CardRepository;
 
@@ -32,6 +33,7 @@ public class CardService {
     private final CardRepository cardRepository;
     private final InvoiceService invoiceService;
     private final PasswordEncoder passwordEncoder;
+    private final TransactionService transactionService;
 
     public ResponseEntity<CardRequestDto> createCard(String accountCpf, String cardName, String cardPassword,
             Double cardValue) {
@@ -106,32 +108,42 @@ public class CardService {
     }
 
     public ResponseEntity<String> buyWithCard(Long cardId, String accountCpf, Double purchaseAmount) {
-        Optional<Card> optCard = cardRepository.findById(cardId);
-        Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
+    Optional<Card> optCard = cardRepository.findById(cardId);
+    Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
 
-        if (!optAccount.isPresent()) {
-            return ResponseEntity.badRequest().body("Account not found!");
-        }
-
-        Account account = optAccount.get();
-
-        if (optCard.isPresent()) {
-            Card card = optCard.get();
-
-            if (account.getCreditLimit() - account.getUsedLimit() >= purchaseAmount) {
-                account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
-                card.setCardValue(card.getCardValue() - purchaseAmount);
-
-                cardRepository.save(card);
-                accountRepository.save(account);
-
-                return invoiceService.createInvoice(account, purchaseAmount, LocalDate.now().getMonthValue(),
-                        LocalDate.now().getYear());
-            }
-            return ResponseEntity.badRequest().body("Insufficient limit!");
-        }
-        return ResponseEntity.notFound().build();
+    if (!optAccount.isPresent()) {
+        return ResponseEntity.badRequest().body("Account not found!");
     }
+
+    Account account = optAccount.get();
+
+    if (optCard.isPresent()) {
+        Card card = optCard.get();
+
+        if (account.getCreditLimit() - account.getUsedLimit() >= purchaseAmount) {
+
+            account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
+            card.setCardValue(card.getCardValue() - purchaseAmount);
+
+            cardRepository.save(card);
+            accountRepository.save(account);
+
+            ResponseEntity<String> invoiceResponse = invoiceService.createInvoice(account, purchaseAmount,
+                    LocalDate.now().getMonthValue(), LocalDate.now().getYear());
+
+            if (!invoiceResponse.getStatusCode().is2xxSuccessful()) {
+                return invoiceResponse;
+            }
+
+            TransactionResponseDto transactionResponse = transactionService.processTransaction(
+                account.getId(), card.getId(), purchaseAmount, "Purchase");
+
+            return ResponseEntity.ok("Purchase successful! Transaction ID: " + transactionResponse.id());
+        }
+        return ResponseEntity.badRequest().body("Insufficient limit!");
+    }
+    return ResponseEntity.notFound().build();
+}
 
     public ResponseEntity<Void> deleteCard(Long cardId) {
         if (!cardRepository.existsById(cardId)) {

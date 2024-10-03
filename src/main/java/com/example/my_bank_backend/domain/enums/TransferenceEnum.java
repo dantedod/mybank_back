@@ -1,6 +1,6 @@
 package com.example.my_bank_backend.domain.enums;
 
-public enum TransactionEnum {
+public enum TransferenceEnum {
     PIX,
     TED,
     DOC,
