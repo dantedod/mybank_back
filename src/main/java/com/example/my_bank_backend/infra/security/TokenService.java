@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
-import org.postgresql.shaded.com.ongres.scram.common.bouncycastle.pbkdf2.RuntimeCryptoException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +12,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.example.my_bank_backend.domain.user.User;
+import com.example.my_bank_backend.exception.TokenGenerationException;
 
 @Service
 public class TokenService {
@@ -26,7 +26,7 @@ public class TokenService {
             return JWT.create().withIssuer("login-auth-api").withSubject(user.getEmail())
                     .withExpiresAt(this.generateExpiration()).sign(algorithm);
         } catch (JWTCreationException exception) {
-            throw new RuntimeCryptoException("Erro ao autenticar");
+            throw new TokenGenerationException("Erro ao autenticar", exception);
         }
     }
 
