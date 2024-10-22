@@ -1,11 +1,11 @@
 package com.example.my_bank_backend.service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.my_bank_backend.domain.account.Account;
@@ -57,30 +57,30 @@ public class TransactionService {
                 savedTransaction.getTransactionDate());
     }
 
-    public ResponseEntity<List<TransactionResponseDto>> getAllTransactionsByCpf(String cpf) {
+    public List<TransactionResponseDto> getAllTransactionsByCpf(String cpf) {
         Optional<Account> optAccount = accountRepository.findByCpf(cpf);
-
+    
         if (optAccount.isPresent()) {
             Account account = optAccount.get();
-
+    
             List<Transaction> transactions = transactionRepository.findByAccountCpf(account.getCpf());
-
+    
             if (transactions.isEmpty()) {
-                return ResponseEntity.noContent().build();
+                return Collections.emptyList();
             } else {
-                List<TransactionResponseDto> responseDtos = transactions.stream()
-                        .map(tx -> new TransactionResponseDto(
-                                tx.getId(),
-                                tx.getAccount().getId(),
-                                tx.getCard().getId(),
-                                tx.getAmount(),
-                                tx.getPaymentDescription(),
-                                tx.getTransactionDate()))
-                        .collect(Collectors.toList());
-                return ResponseEntity.ok(responseDtos);
+                return transactions.stream()
+                    .map(tx -> new TransactionResponseDto(
+                        tx.getId(),
+                        tx.getCard().getId(),
+                        tx.getAccount().getId(),
+                        tx.getAmount(),
+                        tx.getPaymentDescription(),
+                        tx.getTransactionDate()))
+                    .collect(Collectors.toList());
             }
         } else {
-            return ResponseEntity.noContent().build();
+            return Collections.emptyList();
         }
     }
+    
 }
