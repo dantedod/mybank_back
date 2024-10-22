@@ -19,7 +19,7 @@ import com.example.my_bank_backend.service.TransferenceService;
 
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {"http://localhost:4200", "https://mybank-front-3d93fg8dq-mateus-quixadas-projects.vercel.app"})
 @RestController
 @RequestMapping("/transference")
 @RequiredArgsConstructor
