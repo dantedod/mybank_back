@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.my_bank_backend.domain.account.Account;
@@ -23,11 +22,15 @@ public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
     private final AccountRepository accountRepository;
 
-    public ResponseEntity<List<Invoice>> getAllInvoices() {
-        return ResponseEntity.ok(invoiceRepository.findAll());
+    public List<Invoice> getAllInvoices(String accountCpf) {
+        return invoiceRepository.findByAccountCpf(accountCpf);
     }
 
-    public ResponseEntity<String> createInvoice(Account account, Double purchaseAmount, int invoiceMonth, int invoiceYear) {
+    public String createInvoice(Account account, Double purchaseAmount, int invoiceMonth, int invoiceYear) {
+        if (account == null) {
+            return "Account is null";
+        }
+        
         Optional<Invoice> existsInvoice = invoiceRepository.findByAccountAndMonthAndYear(account, invoiceMonth, invoiceYear);
         
         if (existsInvoice.isEmpty()) {
@@ -38,24 +41,29 @@ public class InvoiceService {
             newInvoice.setInvoiceDate(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()));
             newInvoice.setDueDate(Date.from(LocalDate.now().plusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant()));
             newInvoice.setClosingDate(Date.from(LocalDate.now().plusDays(24).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-            newInvoice.setInvoiceStatus("Não paga!");
-            newInvoice.setInvoiceDescription("Fatura do mês: " + invoiceMonth);
+            newInvoice.setInvoiceStatus("Unpaid!");
+            newInvoice.setInvoiceDescription("Month: " + invoiceMonth);
             
-            invoiceRepository.save(newInvoice);
-            return ResponseEntity.ok("Invoice created");
+            try {
+                invoiceRepository.save(newInvoice);
+                return "SUCCESS";
+            } catch (Exception e) {
+                return "Failed to create invoice: " + e.getMessage();
+            }
         } else {
             Invoice existingInvoice = existsInvoice.get();
             existingInvoice.setAmount(existingInvoice.getAmount() + purchaseAmount);
             invoiceRepository.save(existingInvoice);
-            return ResponseEntity.ok("Invoice updated");
+            return "Invoice updated";
         }
     }
+    
 
-    public ResponseEntity<String> addValue(Long invoiceId, Double value) {
+    public String addValue(Long invoiceId, Double value) {
         Optional<Invoice> optInvoice = invoiceRepository.findById(invoiceId);
 
         if (optInvoice.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return "Invoice not Found!";
         }
 
         Invoice existingInvoice = optInvoice.get();
@@ -72,7 +80,7 @@ public class InvoiceService {
                 .findFirst();
 
         if (matchingInvoice.isEmpty()) {
-            return ResponseEntity.badRequest().body("Invoice don't match with month and year.");
+            return "Invoice don't match with month and year.";
         }
 
         Double existingAmount = existingInvoice.getAmount();
@@ -81,10 +89,10 @@ public class InvoiceService {
         existingInvoice.setAmount(newAmount);
         invoiceRepository.save(existingInvoice);
 
-        return ResponseEntity.ok("Value added to invoice");
+        return "Value added to invoice";
     }
 
-    public ResponseEntity<Optional<Invoice>> getInvoiceByAccount(String accountCpf) {
+    public Invoice getInvoiceByAccount(String accountCpf) {
         Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
 
         if (optAccount.isPresent()) {
@@ -100,41 +108,43 @@ public class InvoiceService {
                     .findFirst();
 
             if (optInvoice.isPresent()) {
-                return ResponseEntity.ok(optInvoice);
+                return optInvoice.get();
             }
-            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+        return null;
     }
 
-    public ResponseEntity<String> payInvoice(String accountCpf, Double payValue) {
+    public Invoice payInvoice(String accountCpf, Double payValue) {
+
         Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
-
-        Account account = optAccount.get();
-
         if (optAccount.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return null;
         }
-
+    
+        Account account = optAccount.get();
+    
         Optional<Invoice> optInvoice = invoiceRepository.findInvoiceByAccountId(account.getId());
+        if (optInvoice.isEmpty()) {
+            return null;
+        }
 
         Invoice payInvoice = optInvoice.get();
-
-        if (optInvoice.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    
         LocalDate actualDay = LocalDate.now();
         Date payDay = Date.from(actualDay.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    
+        if (payDay.compareTo(payInvoice.getDueDate()) <= 0) {
 
-        if(payDay.compareTo(payInvoice.getDueDate()) <= 0){
-          account.setAccountValue(account.getAccountValue() - payValue);
-          payInvoice.setAmount(payInvoice.getAmount() - payValue);
-          account.setUsedLimit(payInvoice.getAmount());
+            account.setAccountValue(account.getAccountValue() - payValue);
+            payInvoice.setAmount(payInvoice.getAmount() - payValue);
+            
+            account.setUsedLimit(account.getUsedLimit() - payValue);
         }
-
+    
         invoiceRepository.save(payInvoice);
         accountRepository.save(account);
-
-        return ResponseEntity.ok("Invoice was payed");
+    
+        return payInvoice;
     }
+    
 }

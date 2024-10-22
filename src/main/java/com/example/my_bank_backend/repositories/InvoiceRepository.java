@@ -24,4 +24,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
   List<Invoice> findInvoicesByAccountId(Long accountId);
 
+  List<Invoice> findByAccountCpf(String accountCpf);
+
 }

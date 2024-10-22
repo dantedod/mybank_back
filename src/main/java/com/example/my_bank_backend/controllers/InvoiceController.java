@@ -1,8 +1,8 @@
 package com.example.my_bank_backend.controllers;
 
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,23 +26,66 @@ public class InvoiceController {
 
   private final InvoiceService invoiceService;
 
-  @GetMapping
-  public ResponseEntity<List<Invoice>> getAllInvoices() {
-    return invoiceService.getAllInvoices();
+  @GetMapping("{accountCpf}")
+  public ResponseEntity<List<Invoice>> getAllInvoices(@PathVariable String accountCpf) {
+
+    try {
+      List<Invoice> invoices = invoiceService.getAllInvoices(accountCpf);
+
+      if (invoices.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+      }
+
+      return ResponseEntity.ok(invoices);
+    } catch (Exception e) {
+      return ResponseEntity.badRequest().build();
+    }
   }
 
   @PostMapping("/addvalue/{invoiceId}/{value}")
   public ResponseEntity<String> addValue(@PathVariable Long invoiceId, @PathVariable Double value) {
-    return invoiceService.addValue(invoiceId, value);
+
+    if (invoiceId == null || value == null || value <= 0) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid invoiceId or value");
+    }
+
+    try {
+      String result = invoiceService.addValue(invoiceId, value);
+      return ResponseEntity.ok(result);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while adding value");
+    }
   }
 
   @GetMapping("/account/{accountCpf}")
-  public ResponseEntity<Optional<Invoice>> getInvoiceByAccount(@PathVariable String accountCpf) {
-    return invoiceService.getInvoiceByAccount(accountCpf);
+  public ResponseEntity<Invoice> getInvoiceByAccount(@PathVariable String accountCpf) {
+
+    if (accountCpf == null) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    try {
+      Invoice invoice = invoiceService.getInvoiceByAccount(accountCpf);
+
+      return ResponseEntity.ok(invoice);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
   }
 
   @PostMapping("/pay")
-  public ResponseEntity<String> payInvoice(@RequestBody PaymentInvoiceDto paymentInvoiceDto) {
-    return invoiceService.payInvoice(paymentInvoiceDto.accountCpf(), paymentInvoiceDto.payValue()); 
+  public ResponseEntity<Invoice> payInvoice(@RequestBody PaymentInvoiceDto paymentInvoiceDto) {
+
+    if (paymentInvoiceDto == null){
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    try {
+      Invoice invoice = invoiceService.payInvoice(paymentInvoiceDto.accountCpf(), paymentInvoiceDto.payValue());
+      
+      return ResponseEntity.ok(invoice);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
   }
 }
