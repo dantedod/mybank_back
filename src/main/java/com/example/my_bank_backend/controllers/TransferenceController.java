@@ -2,6 +2,7 @@ package com.example.my_bank_backend.controllers;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,22 +30,55 @@ public class TransferenceController {
     @PostMapping("/create")
     public ResponseEntity<TransferResponseDto> createTransaction(
             @RequestBody TransferRequestDto transferenceRequestDto) {
-        TransferResponseDto response = transferenceService.processTransfer(
-                transferenceRequestDto.cpfSender(),
-                transferenceRequestDto.cpfReceiver(),
-                transferenceRequestDto.amount(),
-                transferenceRequestDto.paymentDescription(),
-                transferenceRequestDto.transferenceType());
-        return ResponseEntity.ok(response);
+
+        if (transferenceRequestDto == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        try {
+            TransferResponseDto response = transferenceService.processTransfer(
+                    transferenceRequestDto.cpfSender(),
+                    transferenceRequestDto.cpfReceiver(),
+                    transferenceRequestDto.amount(),
+                    transferenceRequestDto.paymentDescription(),
+                    transferenceRequestDto.transferenceType());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/{cpf}")
     public ResponseEntity<List<TransferResponseDto>> getAllTransferencesByCpf(@PathVariable String cpf) {
-        return transferenceService.getAllTransfersByCpf(cpf);
+
+        if (cpf == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        try {
+            List<TransferResponseDto> tDto = transferenceService.getAllTransfersByCpf(cpf);
+
+            return ResponseEntity.ok(tDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
     }
 
     @GetMapping("/id/{id}")
     public ResponseEntity<Transference> getTransferenceByCpf(@PathVariable Long id) {
-        return transferenceService.getTransferencesByCpf(id);
+
+        if (id == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        try {
+            Transference transference = transferenceService.getTransferencesByCpf(id);
+
+            return ResponseEntity.ok(transference);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
     }
 }

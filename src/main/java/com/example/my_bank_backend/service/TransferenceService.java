@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.enums.TransferenceEnum;
 import com.example.my_bank_backend.domain.transference.Transference;
 import com.example.my_bank_backend.dto.TransferResponseDto;
+import com.example.my_bank_backend.exception.AccountNotFoundException;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.TransferenceRepository;
 
@@ -67,46 +67,38 @@ public class TransferenceService {
                 savedTransfer.getTransferenceType());
     }
 
-    public ResponseEntity<List<TransferResponseDto>> getAllTransfersByCpf(String cpf) {
-        Optional<Account> optAccount = accountRepository.findByCpf(cpf);
+    public List<TransferResponseDto> getAllTransfersByCpf(String cpf) {
+        Account account = accountRepository.findByCpf(cpf)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
     
-        if (optAccount.isPresent()) {
-            Account account = optAccount.get();
-            Long accountId = account.getId(); // Obter o ID da conta
+        Long accountId = account.getId();
     
-            List<Transference> transferences = transferenceRepository.findBySenderAccountIdOrReceiverAccountId(accountId, accountId);
+        List<Transference> transferences = transferenceRepository.findBySenderAccountIdOrReceiverAccountId(accountId, accountId);
     
-            if (transferences.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            } else {
-                List<TransferResponseDto> responseDtos = transferences.stream()
-                        .map(tx -> new TransferResponseDto(
-                                tx.getId(),
-                                tx.getSenderAccountCpf(),
-                                tx.getSenderAccount().getUser().getName(),
-                                tx.getReceiverAccountCpf(),
-                                tx.getReceiverAccount().getUser().getName(),
-                                tx.getAmount(),
-                                tx.getPaymentDescription(),
-                                tx.getTransferenceDate(),
-                                tx.getTransferenceType()))
-                        .collect(Collectors.toList());
-                return ResponseEntity.ok(responseDtos);
-            }
-        } else {
-            return ResponseEntity.noContent().build();
-        }
+        return transferences.stream()
+                .map(tx -> new TransferResponseDto(
+                        tx.getId(),
+                        tx.getSenderAccount().getCpf(),
+                        tx.getSenderAccount().getUser().getName(),
+                        tx.getReceiverAccount().getCpf(),
+                        tx.getReceiverAccount().getUser().getName(),
+                        tx.getAmount(),
+                        tx.getPaymentDescription(),
+                        tx.getTransferenceDate(),
+                        tx.getTransferenceType()))
+                .collect(Collectors.toList());
     }
     
+    
 
-    public ResponseEntity<Transference> getTransferencesByCpf(Long id) {
+    public Transference getTransferencesByCpf(Long id) {
 
         Optional<Transference> transaction = transferenceRepository.findById(id);
 
         if (transaction.isPresent()) {
-            return ResponseEntity.ok(transaction.get());
+            return transaction.get();
         } else {
-            return ResponseEntity.notFound().build();
+            return null;
         }
     }
 }
