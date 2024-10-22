@@ -1,5 +1,6 @@
 package com.example.my_bank_backend.controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,12 +26,36 @@ public class UserController {
 
   @GetMapping("/{cpf}")
   public ResponseEntity<User> getUserByCpf(@PathVariable String cpf) {
-    return userService.getUserByCpf(cpf);
+
+    if (cpf == null) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    try {
+      User user = userService.getUserByCpf(cpf);
+
+      return ResponseEntity.ok(user);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
   }
 
   @PutMapping("/update")
   public ResponseEntity<ConfigDetailsDto> updateUser(@RequestBody ConfigDetailsDto requestDto) {
-    return userService.updateUser(requestDto);
+
+    if (requestDto == null) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+    }
+
+    try {
+      ConfigDetailsDto upDto = userService.updateUser(requestDto);
+      return ResponseEntity.ok(upDto);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+    
   }
 
 }

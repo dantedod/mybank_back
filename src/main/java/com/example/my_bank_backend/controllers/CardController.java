@@ -2,6 +2,7 @@ package com.example.my_bank_backend.controllers;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,23 +29,55 @@ public class CardController {
 
     @PostMapping("/create")
     public ResponseEntity<CardRequestDto> createCard(@RequestBody CardRequestDto cardRequestDto) {
-        return cardService.createCard(cardRequestDto.accountCpf(), cardRequestDto.cardName(),
-                cardRequestDto.cardPassword(), cardRequestDto.cardValue());
+
+        try {
+            Card card = cardService.createCard(cardRequestDto.accountCpf(), cardRequestDto.cardName(),
+                    cardRequestDto.cardPassword(), cardRequestDto.cardValue());
+
+            if (card != null) {
+                return ResponseEntity.ok(new CardRequestDto(card.getAccount().getCpf(), card.getCardName(),
+                        card.getCardNumber(), card.getCardPassword(), card.getCvv(), card.getCardValue(),
+                        card.getExpirationDate(), card.getCardStatus()));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
 
     @GetMapping("/{accountCpf}")
     public ResponseEntity<List<Card>> getCardByAccountCpf(@PathVariable String accountCpf) {
-        return cardService.getCardByAccountCpf(accountCpf);
+
+        try {
+            List<Card> cards = cardService.getCardByAccountCpf(accountCpf);
+
+            return ResponseEntity.ok(cards);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 
     @PostMapping("/buy/{accountCpf}/{cardId}/{purchaseAmount}")
     public ResponseEntity<String> buyWithCard(@PathVariable Long cardId, @PathVariable String accountCpf,
             @PathVariable Double purchaseAmount) {
-        return cardService.buyWithCard(cardId, accountCpf, purchaseAmount);
+
+        try {
+            String buy = cardService.buyWithCard(cardId, accountCpf, purchaseAmount);
+
+            return ResponseEntity.ok(buy);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @DeleteMapping("/{cardId}")
-    public ResponseEntity<Void> deleteCard(@PathVariable Long cardId) {
-        return cardService.deleteCard(cardId);
+    public ResponseEntity<String> deleteCard(@PathVariable Long cardId) {
+        String deleteCardResponse = cardService.deleteCard(cardId);
+
+        if (deleteCardResponse.equals("Card not found!")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(deleteCardResponse);
+        }
+
+        return ResponseEntity.ok(deleteCardResponse);
     }
 }

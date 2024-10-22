@@ -2,13 +2,11 @@ package com.example.my_bank_backend.service;
 
 import java.util.Optional;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.my_bank_backend.domain.user.User;
 import com.example.my_bank_backend.dto.ConfigDetailsDto;
-import com.example.my_bank_backend.dto.ResponseDto;
 import com.example.my_bank_backend.repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,11 +20,11 @@ public class UserService {
     private final AccountService accountService;
 
 
-    public ResponseEntity<ConfigDetailsDto> updateUser(ConfigDetailsDto requestDto) {
+    public ConfigDetailsDto updateUser(ConfigDetailsDto requestDto) {
         User user = userRepository.findByCpf(requestDto.cpf()).orElse(null);
 
         if (user == null) {
-            return ResponseEntity.notFound().build();
+            return null;
         }
 
         boolean updated = false;
@@ -48,23 +46,23 @@ public class UserService {
 
         if (updated) {
             userRepository.save(user);
-            return ResponseEntity.ok(requestDto);
+            return requestDto;
         } else {
-            return ResponseEntity.notFound().build();
+            return null;
         }
     }
 
-    public ResponseEntity<User> getUserByCpf(String cpf) {
+    public User getUserByCpf(String cpf) {
         Optional<User> optUser = this.userRepository.findByCpf(cpf);
 
         if (optUser.isPresent()) {
-            return ResponseEntity.ok(optUser.get());
+            return optUser.get();
         } else {
-            return ResponseEntity.notFound().build();
+            return null;
         }
     }
 
-    public ResponseEntity<ResponseDto> register(String name, String email, String password, String phone, String cpf,
+    public User register(String name, String email, String password, String phone, String cpf,
             String birthDate) {
 
         Optional<User> user = userRepository.findByEmail(email);
@@ -81,9 +79,9 @@ public class UserService {
             newUser.setAccount(accountService.createAccountForUser(cpf, newUser));
 
             this.userRepository.save(newUser);
-            return ResponseEntity.ok(new ResponseDto(null, newUser.getName(), newUser.getCpf()));
+            return newUser;
         }
-        return ResponseEntity.badRequest().build();
+        return null;
     }
 
 }

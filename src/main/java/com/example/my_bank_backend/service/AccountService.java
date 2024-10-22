@@ -3,11 +3,11 @@ package com.example.my_bank_backend.service;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.user.User;
+import com.example.my_bank_backend.exception.AccountNotFoundException;
 import com.example.my_bank_backend.repositories.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -18,10 +18,9 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
 
-    public ResponseEntity<Account> getAccountByCpf(String cpf) {
-        Optional<Account> optAccount = accountRepository.findByCpf(cpf);
-
-        return optAccount.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public Account getAccountByCpf(String cpf) {
+        return accountRepository.findByCpf(cpf)
+                .orElseThrow(() -> new AccountNotFoundException("Account not Found!"));
     }
 
     public Account createAccountForUser(String cpf, User newUser) {
@@ -34,38 +33,35 @@ public class AccountService {
         return newAccount;
     }
 
-    public ResponseEntity<List<Account>> getAllAccounts() {
-        List<Account> accounts = accountRepository.findAll();
-        return ResponseEntity.ok(accounts);
+    public List<Account> getAllAccounts() {
+        return accountRepository.findAll();
     }
 
-    public ResponseEntity<Account> addValueToAccount(String cpf, Double value) {
-        Optional<Account> optAccount = accountRepository.findByCpf(cpf);
+    public Account addValueToAccount(String cpf, Double value) {
+        
+        if (value != null) {
+            Optional<Account> optAccount = accountRepository.findByCpf(cpf);
 
-        if (value == null) {
-            return ResponseEntity.badRequest().body(null);
+            Account account = optAccount.get();
+            account.setAccountValue(account.getAccountValue() + value);
+
+            return accountRepository.save(account);
         }
 
-        Account account = optAccount.get();
-        account.setAccountValue(account.getAccountValue() + value);
-
-        Account updatedAccount = accountRepository.save(account);
-
-        return ResponseEntity.ok(updatedAccount);
+        return null;
     }
 
-    public ResponseEntity<Account> subValueAccount(String cpf, Double value) {
-        Optional<Account> optAccount = accountRepository.findByCpf(cpf);
-
-        if (value == null) {
-            return ResponseEntity.badRequest().body(null);
+    public Account subValueAccount(String cpf, Double value) {
+        if (value == null || value <= 0) {
+            throw new IllegalArgumentException("Value must be greater than zero.");
         }
 
-        Account account = optAccount.get();
+        Account account = accountRepository.findByCpf(cpf)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found for CPF: " + cpf));
+
         account.setAccountValue(account.getAccountValue() - value);
 
-        Account updatedAccount = accountRepository.save(account);
-
-        return ResponseEntity.ok(updatedAccount);
+        return accountRepository.save(account);
     }
+
 }

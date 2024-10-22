@@ -2,6 +2,7 @@ package com.example.my_bank_backend.controllers;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,20 +25,43 @@ import lombok.RequiredArgsConstructor;
 public class TransactionController {
 
     private final TransactionService transactionService;
-    
+
     @PostMapping("/create")
     public ResponseEntity<TransactionResponseDto> createTransaction(
             @RequestBody TransactionRequestDto transactionRequestDto) {
-        TransactionResponseDto response = transactionService.processTransaction(
+
+        if(transactionRequestDto == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        try {
+            TransactionResponseDto response = transactionService.processTransaction(
                 transactionRequestDto.accountId(),
                 transactionRequestDto.cardId(),
                 transactionRequestDto.amount(),
                 transactionRequestDto.paymentDescription());
-        return ResponseEntity.ok(response);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        
     }
 
     @GetMapping("/{cpf}")
     public ResponseEntity<List<TransactionResponseDto>> getAllTransactionsByCpf(@PathVariable String cpf) {
-        return transactionService.getAllTransactionsByCpf(cpf);
+
+        if(cpf == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        try {
+            List<TransactionResponseDto> transactions = transactionService.getAllTransactionsByCpf(cpf);
+            
+            return ResponseEntity.ok(transactions);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        
     }
 }

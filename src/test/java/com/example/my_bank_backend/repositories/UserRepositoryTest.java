@@ -18,14 +18,11 @@ import jakarta.persistence.EntityManager;
 @ActiveProfiles("test")
 class UserRepositoryTest {
 
-    EntityManager entityManager;
-    UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
-    public UserRepositoryTest(EntityManager entityManager, UserRepository userRepository) {
-        this.entityManager = entityManager;
-        this.userRepository = userRepository;
-    }
+    private EntityManager entityManager;
 
     @Test
     @DisplayName("Should get successfully")
@@ -37,7 +34,7 @@ class UserRepositoryTest {
 
         Optional<User> result = this.userRepository.findByCpf(cpf);
 
-        assertThat(result.isPresent()).isTrue();
+        assertThat(result).isPresent();
     }
 
     @Test
@@ -47,12 +44,21 @@ class UserRepositoryTest {
 
         Optional<User> result = this.userRepository.findByCpf(cpf);
 
-        assertThat(result.isEmpty()).isTrue();
+        assertThat(result).isEmpty();
     }
 
     @Test
+    @DisplayName("Should get User By Email successfully")
     void testFindByEmail() {
+        String email = "teste@teste.com";
+        RegisterRequestDto registerRequestDto = new RegisterRequestDto("Mateus", email, "123456",
+                "859999999", "01234567899", "25/10/2001");
+        this.createUser(registerRequestDto);
 
+        Optional<User> result = this.userRepository.findByEmail(email);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getEmail()).isEqualTo(email);
     }
 
     private User createUser(RegisterRequestDto registerRequestDto) {
