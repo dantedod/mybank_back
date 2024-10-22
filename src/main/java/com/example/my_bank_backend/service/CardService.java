@@ -4,25 +4,24 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.card.Card;
-import com.example.my_bank_backend.dto.CardRequestDto;
 import com.example.my_bank_backend.dto.TransactionResponseDto;
+import com.example.my_bank_backend.exception.AccountNotFoundException;
+import com.example.my_bank_backend.exception.CardAlreadyExistsException;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.CardRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-
 public class CardService {
 
     private final SecureRandom secureRandom = new SecureRandom();
@@ -35,50 +34,44 @@ public class CardService {
     private final PasswordEncoder passwordEncoder;
     private final TransactionService transactionService;
 
-    public ResponseEntity<CardRequestDto> createCard(String accountCpf, String cardName, String cardPassword,
-            Double cardValue) {
-        Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
+    public Card createCard(String accountCpf, String cardName, String cardPassword, Double cardValue) {
+        validateCardInput(accountCpf, cardName, cardValue);
 
-        if (optAccount.isPresent()) {
-            Account account = optAccount.get();
+        Account account = accountRepository.findByCpf(accountCpf)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found for CPF: " + accountCpf));
 
-            String cardNumber = generateCardNumber();
+        String cardNumber = generateCardNumber();
+        if (cardRepository.findByCardNumberAndAccount(cardNumber, account).isPresent()) {
+            throw new CardAlreadyExistsException("Card already exists for this account.");
+        }
 
-            Optional<Card> existingCard = cardRepository.findByCardNumberAndAccount(cardNumber, account);
-            if (existingCard.isPresent()) {
-                return ResponseEntity.badRequest().body(null);
-            }
+        String cvv = generateCvv();
+        Card newCard = new Card();
+        newCard.setCardName(cardName);
+        newCard.setCardNumber(cardNumber);
+        newCard.setCardPassword(passwordEncoder.encode(cardPassword));
+        newCard.setCvv(cvv);
+        newCard.setCardValue(cardValue);
+        newCard.setExpirationDate("10/2030");
+        newCard.setCardStatus("Active");
+        newCard.setAccount(account);
 
-            String cvv = generateCvv();
-            Card card = new Card();
-            card.setCardName(cardName);
-            card.setCardNumber(cardNumber);
-            card.setCardPassword(passwordEncoder.encode(cardPassword));
-            card.setCvv(cvv);
-            card.setCardValue(cardValue);
-            card.setExpirationDate("10/2030");
-            card.setCardStatus("Ativo");
-            card.setAccount(account);
+        return cardRepository.save(newCard);
+    }
 
-            cardRepository.save(card);
-
-            CardRequestDto cardDto = new CardRequestDto(
-                    accountCpf,
-                    cardName,
-                    cardNumber,
-                    cardPassword,
-                    cvv,
-                    cardValue,
-                    "10/2030",
-                    "Ativo");
-
-            return ResponseEntity.ok(cardDto);
-        } else {
-            return ResponseEntity.badRequest().body(null);
+    private void validateCardInput(String accountCpf, String cardName, Double cardValue) {
+        if (accountCpf == null || accountCpf.isEmpty()) {
+            throw new IllegalArgumentException("Account CPF cannot be null or empty.");
+        }
+        if (cardName == null || cardName.isEmpty()) {
+            throw new IllegalArgumentException("Card name cannot be null or empty.");
+        }
+        if (cardValue == null || cardValue <= 0) {
+            throw new IllegalArgumentException("Card value must be greater than zero.");
         }
     }
 
-    private String generateCardNumber() {
+    String generateCardNumber() {
         String cardNumber;
         do {
             cardNumber = String.format("%04d %04d %04d %04d",
@@ -102,55 +95,51 @@ public class CardService {
         return cvv;
     }
 
-    public ResponseEntity<List<Card>> getCardByAccountCpf(String accountCpf) {
-        List<Card> cards = cardRepository.findCardsByAccountCpf(accountCpf);
-        return ResponseEntity.ok(cards);
+    public List<Card> getCardByAccountCpf(String accountCpf) {
+        return cardRepository.findCardsByAccountCpf(accountCpf);
     }
 
-    public ResponseEntity<String> buyWithCard(Long cardId, String accountCpf, Double purchaseAmount) {
-    Optional<Card> optCard = cardRepository.findById(cardId);
-    Optional<Account> optAccount = accountRepository.findByCpf(accountCpf);
+    @Transactional
+    public String buyWithCard(Long cardId, String accountCpf, Double purchaseAmount) {
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new IllegalArgumentException("Card not found!"));
 
-    if (!optAccount.isPresent()) {
-        return ResponseEntity.badRequest().body("Account not found!");
-    }
+        Account account = accountRepository.findByCpf(accountCpf)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found!"));
 
-    Account account = optAccount.get();
-
-    if (optCard.isPresent()) {
-        Card card = optCard.get();
-
-        if (account.getCreditLimit() - account.getUsedLimit() >= purchaseAmount) {
-
-            account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
-            card.setCardValue(card.getCardValue() - purchaseAmount);
-
-            cardRepository.save(card);
-            accountRepository.save(account);
-
-            ResponseEntity<String> invoiceResponse = invoiceService.createInvoice(account, purchaseAmount,
-                    LocalDate.now().getMonthValue(), LocalDate.now().getYear());
-
-            if (!invoiceResponse.getStatusCode().is2xxSuccessful()) {
-                return invoiceResponse;
-            }
-
-            TransactionResponseDto transactionResponse = transactionService.processTransaction(
-                account.getId(), card.getId(), purchaseAmount, "Purchase");
-
-            return ResponseEntity.ok("Purchase successful! Transaction ID: " + transactionResponse.id());
-        }
-        return ResponseEntity.badRequest().body("Insufficient limit!");
-    }
-    return ResponseEntity.notFound().build();
-}
-
-    public ResponseEntity<Void> deleteCard(Long cardId) {
-        if (!cardRepository.existsById(cardId)) {
-            return ResponseEntity.notFound().build();
+        if (account.getCreditLimit() - account.getUsedLimit() < purchaseAmount) {
+            return "Insufficient limit!";
         }
 
-        cardRepository.deleteById(cardId);
-        return ResponseEntity.noContent().build();
+        account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
+        card.setCardValue(card.getCardValue() - purchaseAmount);
+
+        cardRepository.save(card);
+        accountRepository.save(account);
+
+        String invoiceResponse = invoiceService.createInvoice(account, purchaseAmount,
+                LocalDate.now().getMonthValue(), LocalDate.now().getYear());
+
+        if (invoiceResponse == null || (!invoiceResponse.equalsIgnoreCase("Invoice updated") &&
+                !invoiceResponse.equalsIgnoreCase("SUCCESS"))) {
+            return "Invoice creation failed: " + (invoiceResponse != null ? invoiceResponse : "No response received");
+        }
+
+        TransactionResponseDto transactionResponse = transactionService.processTransaction(
+                account.getId(), card.getId(), purchaseAmount, "Purchase made!");
+
+        if (transactionResponse == null) {
+            throw new IllegalStateException("Transaction processing failed!");
+        }
+
+        return "Purchase successful! Transaction ID: " + transactionResponse.id();
+    }
+
+    public String deleteCard(Long cardId) {
+        if (cardRepository.existsById(cardId)) {
+            cardRepository.deleteById(cardId);
+            return "Card deleted successfully!";
+        }
+        return "Card not found!";
     }
 }
