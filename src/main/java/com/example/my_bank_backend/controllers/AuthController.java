@@ -18,7 +18,7 @@ import com.example.my_bank_backend.service.AuthenticationService;
 
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {"http://localhost:4200", "https://mybank-front-3d93fg8dq-mateus-quixadas-projects.vercel.app"})
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
