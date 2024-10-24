@@ -12,13 +12,15 @@ import com.example.my_bank_backend.domain.user.User;
 import com.example.my_bank_backend.dto.LoginRequestDto;
 import com.example.my_bank_backend.dto.RegisterRequestDto;
 import com.example.my_bank_backend.dto.ResponseDto;
+import com.example.my_bank_backend.exception.CpfAlreadyExistException;
+import com.example.my_bank_backend.exception.EmailAlreadyExistException;
 import com.example.my_bank_backend.exception.IncorrectPasswordException;
 import com.example.my_bank_backend.exception.UserNotFoundException;
 import com.example.my_bank_backend.service.AuthenticationService;
 
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = {"http://localhost:4200", "https://mybank-front.vercel.app"})
+@CrossOrigin(origins = { "http://localhost:4200", "https://mybank-front.vercel.app" })
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -53,8 +55,12 @@ public class AuthController {
             if (user != null) {
                 return ResponseEntity.ok(new ResponseDto(null, user.getName(), user.getCpf()));
             }
-            
+
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (EmailAlreadyExistException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseDto(e.getMessage(), null, null));
+        } catch (CpfAlreadyExistException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseDto(ex.getMessage(), null, null));
         } catch (Exception e) {
             return ResponseEntity
                     .badRequest()
