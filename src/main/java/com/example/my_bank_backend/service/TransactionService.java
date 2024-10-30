@@ -12,6 +12,7 @@ import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.card.Card;
 import com.example.my_bank_backend.domain.transaction.Transaction;
 import com.example.my_bank_backend.dto.TransactionResponseDto;
+import com.example.my_bank_backend.exception.CardWasDisableException;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.CardRepository;
 import com.example.my_bank_backend.repositories.TransactionRepository;
@@ -36,6 +37,10 @@ public class TransactionService {
 
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new IllegalArgumentException("Card not found"));
+
+        if(Boolean.FALSE.equals(card.getIsActive())) {
+            throw new CardWasDisableException("This card was deleted, try create another one!");
+        }
 
         accountRepository.save(account);
 
