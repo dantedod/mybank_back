@@ -1,0 +1,6 @@
+ALTER TABLE cards ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE cards
+DROP CONSTRAINT IF EXISTS unique_card_name;
+
+ALTER TABLE cards DROP CONSTRAINT cards_card_name_key;
