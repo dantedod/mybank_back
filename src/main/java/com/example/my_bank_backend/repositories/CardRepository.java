@@ -15,4 +15,6 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 
     List<Card> findCardsByAccountCpf(String accountCpf);
 
+    Optional<Card> findByCardNameAndAccountAndIsActive(String cardName, Account account, Boolean isActive);
+
 }
