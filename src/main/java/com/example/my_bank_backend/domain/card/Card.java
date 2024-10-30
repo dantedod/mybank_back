@@ -33,6 +33,7 @@ public class Card {
     private Double cardValue;
     private String expirationDate;
     private String cardStatus;
+    private Boolean isActive = true;
 
     @ManyToOne
     @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)

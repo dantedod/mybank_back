@@ -1,11 +1,12 @@
 package com.example.my_bank_backend.controllers;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,11 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.my_bank_backend.domain.card.Card;
 import com.example.my_bank_backend.dto.CardRequestDto;
+import com.example.my_bank_backend.exception.CardAlreadyExistsException;
+import com.example.my_bank_backend.exception.CardWasDisableException;
+import com.example.my_bank_backend.exception.InsufficientCardValueException;
+import com.example.my_bank_backend.exception.InsufficientLimitException;
 import com.example.my_bank_backend.service.CardService;
 
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = {"http://localhost:4200", "https://mybank-front.vercel.app"})
+@CrossOrigin(origins = { "http://localhost:4200", "https://mybank-front.vercel.app" })
 @RestController
 @RequestMapping("/card")
 @RequiredArgsConstructor
@@ -40,8 +45,10 @@ public class CardController {
                         card.getExpirationDate(), card.getCardStatus()));
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (CardAlreadyExistsException ca) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
@@ -65,19 +72,26 @@ public class CardController {
             String buy = cardService.buyWithCard(cardId, accountCpf, purchaseAmount);
 
             return ResponseEntity.ok(buy);
+        } catch (CardWasDisableException | InsufficientCardValueException | InsufficientLimitException cwd) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(cwd.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @DeleteMapping("/{cardId}")
-    public ResponseEntity<String> deleteCard(@PathVariable Long cardId) {
-        String deleteCardResponse = cardService.deleteCard(cardId);
+    @PostMapping("/disable/{cardId}")
+    public ResponseEntity<Map<String, String>> disableCard(@PathVariable Long cardId) {
 
-        if (deleteCardResponse.equals("Card not found!")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(deleteCardResponse);
+        try {
+            cardService.disableCard(cardId);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Card deleted!");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "Card not found.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-
-        return ResponseEntity.ok(deleteCardResponse);
     }
+
 }

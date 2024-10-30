@@ -5,8 +5,10 @@ import com.example.my_bank_backend.domain.card.Card;
 import com.example.my_bank_backend.dto.TransactionResponseDto;
 import com.example.my_bank_backend.exception.AccountNotFoundException;
 import com.example.my_bank_backend.exception.CardAlreadyExistsException;
+import com.example.my_bank_backend.exception.CardNotFoundException;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.CardRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -131,7 +133,8 @@ class CardServiceTest {
         when(accountRepository.findByCpf("12345678909")).thenReturn(Optional.of(testAccount));
         when(invoiceService.createInvoice(any(), anyDouble(), anyInt(), anyInt())).thenReturn("SUCCESS");
 
-        TransactionResponseDto savedTransaction = new TransactionResponseDto(1L, testAccount.getId(), testCard.getId(), 200.0, "Purchase made!", null);
+        TransactionResponseDto savedTransaction = new TransactionResponseDto(1L, testAccount.getId(), testCard.getId(),
+                200.0, "Purchase made!", null);
         when(transactionService.processTransaction(any(), any(), anyDouble(), any())).thenReturn(savedTransaction);
 
         String result = cardService.buyWithCard(1L, "12345678909", 200.0);
@@ -153,20 +156,31 @@ class CardServiceTest {
     }
 
     @Test
-    void testDeleteCard() {
-        when(cardRepository.existsById(1L)).thenReturn(true);
-        doNothing().when(cardRepository).deleteById(1L);
+    void testDisableCard_Success() {
 
-        String result = cardService.deleteCard(1L);
-        assertEquals("Card deleted successfully!", result);
-        verify(cardRepository, times(1)).deleteById(1L);
+        Card cardTestCard = new Card();
+        cardTestCard.setIsActive(true);
+
+        when(cardRepository.findById(1L)).thenReturn(Optional.of(card));
+
+        cardService.disableCard(1L);
+
+        assertFalse(card.getIsActive());
+        verify(cardRepository, times(1)).save(card);
     }
 
     @Test
-    void testDeleteCard_NotFound() {
-        when(cardRepository.existsById(1L)).thenReturn(false);
+    void testDisableCard_NotFound() {
+        
+        when(cardRepository.findById(1L)).thenReturn(Optional.empty());
 
-        String result = cardService.deleteCard(1L);
-        assertEquals("Card not found!", result);
+        Exception exception = assertThrows(CardNotFoundException.class, () -> {
+            cardService.disableCard(1L);
+        });
+
+        assertEquals("Card not found", exception.getMessage());
+
+        verify(cardRepository, never()).save(any(Card.class));
     }
+
 }

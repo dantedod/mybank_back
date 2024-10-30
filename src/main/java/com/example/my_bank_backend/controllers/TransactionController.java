@@ -14,11 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.my_bank_backend.dto.TransactionRequestDto;
 import com.example.my_bank_backend.dto.TransactionResponseDto;
+import com.example.my_bank_backend.exception.CardWasDisableException;
 import com.example.my_bank_backend.service.TransactionService;
 
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = {"http://localhost:4200", "https://mybank-front.vercel.app"})
+@CrossOrigin(origins = { "http://localhost:4200", "https://mybank-front.vercel.app" })
 @RestController
 @RequestMapping("/transaction")
 @RequiredArgsConstructor
@@ -30,38 +31,40 @@ public class TransactionController {
     public ResponseEntity<TransactionResponseDto> createTransaction(
             @RequestBody TransactionRequestDto transactionRequestDto) {
 
-        if(transactionRequestDto == null){
+        if (transactionRequestDto == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         try {
             TransactionResponseDto response = transactionService.processTransaction(
-                transactionRequestDto.accountId(),
-                transactionRequestDto.cardId(),
-                transactionRequestDto.amount(),
-                transactionRequestDto.paymentDescription());
+                    transactionRequestDto.accountId(),
+                    transactionRequestDto.cardId(),
+                    transactionRequestDto.amount(),
+                    transactionRequestDto.paymentDescription());
 
             return ResponseEntity.ok(response);
+        } catch (CardWasDisableException eq) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        
+
     }
 
     @GetMapping("/{cpf}")
     public ResponseEntity<List<TransactionResponseDto>> getAllTransactionsByCpf(@PathVariable String cpf) {
 
-        if(cpf == null) {
+        if (cpf == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         try {
             List<TransactionResponseDto> transactions = transactionService.getAllTransactionsByCpf(cpf);
-            
+
             return ResponseEntity.ok(transactions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        
+
     }
 }

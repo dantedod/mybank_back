@@ -14,6 +14,9 @@ import com.example.my_bank_backend.domain.card.Card;
 import com.example.my_bank_backend.dto.TransactionResponseDto;
 import com.example.my_bank_backend.exception.AccountNotFoundException;
 import com.example.my_bank_backend.exception.CardAlreadyExistsException;
+import com.example.my_bank_backend.exception.CardNotFoundException;
+import com.example.my_bank_backend.exception.InsufficientCardValueException;
+import com.example.my_bank_backend.exception.InsufficientLimitException;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.CardRepository;
 
@@ -45,6 +48,11 @@ public class CardService {
             throw new CardAlreadyExistsException("Card already exists for this account.");
         }
 
+        Boolean isActive = true;
+        if (cardRepository.findByCardNameAndAccountAndIsActive(cardName, account, isActive).isPresent()) {
+            throw new CardAlreadyExistsException("An active card with the same name already exists for this account.");
+        }
+
         String cvv = generateCvv();
         Card newCard = new Card();
         newCard.setCardName(cardName);
@@ -55,6 +63,7 @@ public class CardService {
         newCard.setExpirationDate("10/2030");
         newCard.setCardStatus("Active");
         newCard.setAccount(account);
+        newCard.setIsActive(true);
 
         return cardRepository.save(newCard);
     }
@@ -108,7 +117,11 @@ public class CardService {
                 .orElseThrow(() -> new IllegalArgumentException("Account not found!"));
 
         if (account.getCreditLimit() - account.getUsedLimit() < purchaseAmount) {
-            return "Insufficient limit!";
+            throw new InsufficientLimitException("Insufficient Limit!");
+        }
+
+        if (purchaseAmount > card.getCardValue()) {
+            throw new InsufficientCardValueException("Your card does not have enough value for this purchase!");
         }
 
         account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
@@ -135,11 +148,11 @@ public class CardService {
         return "Purchase successful! Transaction ID: " + transactionResponse.id();
     }
 
-    public String deleteCard(Long cardId) {
-        if (cardRepository.existsById(cardId)) {
-            cardRepository.deleteById(cardId);
-            return "Card deleted successfully!";
-        }
-        return "Card not found!";
+    public void disableCard(Long id) {
+        Card card = cardRepository.findById(id).orElseThrow(() -> new CardNotFoundException("Card not found"));
+
+        card.setIsActive(false);
+        cardRepository.save(card);
     }
+
 }
