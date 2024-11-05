@@ -18,6 +18,8 @@ import com.example.my_bank_backend.domain.card.Card;
 import com.example.my_bank_backend.dto.CardRequestDto;
 import com.example.my_bank_backend.exception.CardAlreadyExistsException;
 import com.example.my_bank_backend.exception.CardWasDisableException;
+import com.example.my_bank_backend.exception.ExceedAccountLimitException;
+import com.example.my_bank_backend.exception.ExceedActualAccountLimitException;
 import com.example.my_bank_backend.exception.InsufficientCardValueException;
 import com.example.my_bank_backend.exception.InsufficientLimitException;
 import com.example.my_bank_backend.service.CardService;
@@ -44,12 +46,18 @@ public class CardController {
                         card.getCardNumber(), card.getCardPassword(), card.getCvv(), card.getCardValue(),
                         card.getExpirationDate(), card.getCardStatus()));
             }
+
+
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (CardAlreadyExistsException ca) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        }catch (ExceedAccountLimitException eal) {
+             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }catch(ExceedActualAccountLimitException ecal){
+          return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+          }catch (Exception e) {
+              return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+          }
     }
 
     @GetMapping("/{accountCpf}")
