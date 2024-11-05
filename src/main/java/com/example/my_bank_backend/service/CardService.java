@@ -45,14 +45,13 @@ public class CardService {
     Account account = accountRepository.findByCpf(accountCpf)
         .orElseThrow(() -> new AccountNotFoundException("Account not found for CPF: " + accountCpf));
 
-    double avaibleLimit = account.getCreditLimit() - account.getUsedLimit();
+    Double avaibleLimit = account.getCreditLimit() - account.getUsedLimit();
     if (cardValue > account.getCreditLimit()) {
       throw new ExceedAccountLimitException("Card value cannot exceed account credit limit." + avaibleLimit);
     }
 
     if (cardValue > avaibleLimit) {
       throw new ExceedActualAccountLimitException("Card value cannot exceed actual account credit limit.");
-
     }
 
     String cardNumber = generateCardNumber();
