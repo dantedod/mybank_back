@@ -47,7 +47,7 @@ public class CardService {
 
     Double avaibleLimit = account.getCreditLimit() - account.getUsedLimit();
     if (cardValue > account.getCreditLimit()) {
-      throw new ExceedAccountLimitException("Card value cannot exceed account credit limit." + avaibleLimit);
+      throw new ExceedAccountLimitException("Card value cannot exceed account credit limit.");
     }
 
     if (cardValue > avaibleLimit) {

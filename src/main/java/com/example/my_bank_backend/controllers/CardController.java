@@ -35,29 +35,25 @@ public class CardController {
     private final CardService cardService;
 
     @PostMapping("/create")
-    public ResponseEntity<CardRequestDto> createCard(@RequestBody CardRequestDto cardRequestDto) {
-
+    public ResponseEntity<String> createCard(@RequestBody CardRequestDto cardRequestDto) {
         try {
             Card card = cardService.createCard(cardRequestDto.accountCpf(), cardRequestDto.cardName(),
                     cardRequestDto.cardPassword(), cardRequestDto.cardValue());
 
             if (card != null) {
-                return ResponseEntity.ok(new CardRequestDto(card.getAccount().getCpf(), card.getCardName(),
-                        card.getCardNumber(), card.getCardPassword(), card.getCvv(), card.getCardValue(),
-                        card.getExpirationDate(), card.getCardStatus()));
+                return ResponseEntity.ok("{\"message\":\"Cartão criado com sucesso\"}");
             }
 
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao criar o cartão.");
         } catch (CardAlreadyExistsException ca) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }catch (ExceedAccountLimitException eal) {
-             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }catch(ExceedActualAccountLimitException ecal){
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-          }catch (Exception e) {
-              return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-          }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cartão já existe.");
+        } catch (ExceedAccountLimitException eal) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(eal.getMessage());
+        } catch (ExceedActualAccountLimitException ecal) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ecal.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro inesperado.");
+        }
     }
 
     @GetMapping("/{accountCpf}")
