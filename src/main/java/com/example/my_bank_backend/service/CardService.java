@@ -14,6 +14,7 @@ import com.example.my_bank_backend.domain.card.Card;
 import com.example.my_bank_backend.dto.TransactionResponseDto;
 import com.example.my_bank_backend.exception.AccountNotFoundException;
 import com.example.my_bank_backend.exception.CardAlreadyExistsException;
+import com.example.my_bank_backend.exception.CardDisabledException;
 import com.example.my_bank_backend.exception.CardNotFoundException;
 import com.example.my_bank_backend.exception.ExceedAccountLimitException;
 import com.example.my_bank_backend.exception.ExceedActualAccountLimitException;
@@ -124,6 +125,10 @@ public class CardService {
     Card card = cardRepository.findById(cardId)
         .orElseThrow(() -> new IllegalArgumentException("Card not found!"));
 
+        if(!card.getIsActive()){
+          throw new CardDisabledException("The card is disabled and cannot be used for purchases.");
+        }
+
     Account account = accountRepository.findByCpf(accountCpf)
         .orElseThrow(() -> new IllegalArgumentException("Account not found!"));
 
@@ -134,6 +139,7 @@ public class CardService {
     if (purchaseAmount > card.getCardValue()) {
       throw new InsufficientCardValueException("Your card does not have enough value for this purchase!");
     }
+
 
     account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
     card.setCardValue(card.getCardValue() - purchaseAmount);
