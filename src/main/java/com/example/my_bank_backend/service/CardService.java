@@ -15,7 +15,9 @@ import com.example.my_bank_backend.dto.TransactionResponseDto;
 import com.example.my_bank_backend.exception.AccountNotFoundException;
 import com.example.my_bank_backend.exception.CardAlreadyExistsException;
 import com.example.my_bank_backend.exception.CardDisabledException;
+import com.example.my_bank_backend.exception.CardNotExisteInAccount;
 import com.example.my_bank_backend.exception.CardNotFoundException;
+import com.example.my_bank_backend.exception.CardPasswordIncorrect;
 import com.example.my_bank_backend.exception.ExceedAccountLimitException;
 import com.example.my_bank_backend.exception.ExceedActualAccountLimitException;
 import com.example.my_bank_backend.exception.InsufficientCardValueException;
@@ -120,14 +122,28 @@ public class CardService {
     return cardRepository.findCardsByAccountCpf(accountCpf);
   }
 
+  
+
   @Transactional
-  public String buyWithCard(Long cardId, String accountCpf, Double purchaseAmount) {
+  public String buyWithCard(Long cardId, String accountCpf, Double purchaseAmount, String cardPassword) {
     Card card = cardRepository.findById(cardId)
         .orElseThrow(() -> new IllegalArgumentException("Card not found!"));
+    System.out.println(card.getAccount().getId().equals(cardId));
 
-        if(!card.getIsActive()){
-          throw new CardDisabledException("The card is disabled and cannot be used for purchases.");
-        }
+    if (!passwordEncoder.matches(cardPassword, card.getCardPassword())) {
+      System.out.println("Senha fornecida: " + cardPassword);
+      System.out.println("Senha armazenada (criptografada): " + card.getCardPassword());
+      throw new CardPasswordIncorrect("Incorrect card password.");
+    }
+
+    if (card.getAccount() == null || !card.getAccount().getCpf().equals((accountCpf))) {
+      throw new CardNotExisteInAccount("This card belongs to another account");
+
+    }
+
+    if (!card.getIsActive()) {
+      throw new CardDisabledException("The card is disabled and cannot be used for purchases.");
+    }
 
     Account account = accountRepository.findByCpf(accountCpf)
         .orElseThrow(() -> new IllegalArgumentException("Account not found!"));
@@ -139,7 +155,6 @@ public class CardService {
     if (purchaseAmount > card.getCardValue()) {
       throw new InsufficientCardValueException("Your card does not have enough value for this purchase!");
     }
-
 
     account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
     card.setCardValue(card.getCardValue() - purchaseAmount);
