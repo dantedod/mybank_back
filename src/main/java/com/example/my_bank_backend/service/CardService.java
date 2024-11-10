@@ -122,27 +122,24 @@ public class CardService {
     return cardRepository.findCardsByAccountCpf(accountCpf);
   }
 
-  
-
   @Transactional
-  public String buyWithCard(Long cardId, String accountCpf, Double purchaseAmount, String cardPassword) {
+  public String buyWithCard(Long cardId, String accountCpf, Double purchaseAmount, String cardPassword, String paymentDescription) {
     Card card = cardRepository.findById(cardId)
         .orElseThrow(() -> new IllegalArgumentException("Card not found!"));
     System.out.println(card.getAccount().getId().equals(cardId));
+
+    if (card.getAccount() == null || !card.getAccount().getCpf().equals((accountCpf))) {
+      throw new CardNotExisteInAccount("This card belongs to another account");
+    }
+
+    if (!card.getIsActive()) {
+      throw new CardDisabledException("The card is disabled and cannot be used for purchases.");
+    }
 
     if (!passwordEncoder.matches(cardPassword, card.getCardPassword())) {
       System.out.println("Senha fornecida: " + cardPassword);
       System.out.println("Senha armazenada (criptografada): " + card.getCardPassword());
       throw new CardPasswordIncorrect("Incorrect card password.");
-    }
-
-    if (card.getAccount() == null || !card.getAccount().getCpf().equals((accountCpf))) {
-      throw new CardNotExisteInAccount("This card belongs to another account");
-
-    }
-
-    if (!card.getIsActive()) {
-      throw new CardDisabledException("The card is disabled and cannot be used for purchases.");
     }
 
     Account account = accountRepository.findByCpf(accountCpf)
@@ -171,7 +168,7 @@ public class CardService {
     }
 
     TransactionResponseDto transactionResponse = transactionService.processTransaction(
-        account.getId(), card.getId(), purchaseAmount, "Purchase made!");
+        account.getId(), card.getId(), purchaseAmount, paymentDescription);
 
     if (transactionResponse == null) {
       throw new IllegalStateException("Transaction processing failed!");

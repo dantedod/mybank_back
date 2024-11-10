@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.my_bank_backend.domain.card.Card;
+import com.example.my_bank_backend.dto.BuyWithCardDto;
 import com.example.my_bank_backend.dto.CardRequestDto;
 import com.example.my_bank_backend.exception.CardAlreadyExistsException;
 import com.example.my_bank_backend.exception.CardDisabledException;
@@ -71,38 +72,30 @@ public class CardController {
     }
   }
 
-  @PostMapping("/buy/{accountCpf}/{cardId}/{purchaseAmount}")
-  public ResponseEntity<Map<String, String>> buyWithCard(@PathVariable Long cardId, @PathVariable String accountCpf,
-      @PathVariable Double purchaseAmount, @RequestBody Map<String, String> body) {
+  @PostMapping("/buy/")
+  public ResponseEntity<String> buyWithCard(@RequestBody BuyWithCardDto buyWithCardDto) {
 
-    String cardPassword = body.get("cardPassword");
+    try {     
+      
 
-    Map<String, String> response = new HashMap<>();
-    try {
-      String buy = cardService.buyWithCard(cardId, accountCpf, purchaseAmount, cardPassword);
+      if(buyWithCardDto == null){
+        return ResponseEntity.badRequest().build(); 
+      }
+      String buy = cardService.buyWithCard(buyWithCardDto.cardId(),buyWithCardDto.accountCpf(),buyWithCardDto.purchaseAmount(),buyWithCardDto.cardPassword(), buyWithCardDto.paymentDescription());
+     
 
-      response.put("message", "Compra realizada com sucesso!");
-      response.put("buyDetails", buy);
-
-      return ResponseEntity.ok(response);
+      return ResponseEntity.ok(buy);
 
     }catch(CardPasswordIncorrect cpi){
-      response.put("error",cpi.getMessage());
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(cpi.getMessage());
     } catch (CardDisabledException cde) {
-      response.put("error", cde.getMessage());
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(cde.getMessage());
     } catch (CardNotExisteInAccount cnei) {
-      response.put("error", cnei.getMessage());
-      return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).body(cnei.getMessage());
     } catch (CardWasDisableException | InsufficientCardValueException | InsufficientLimitException cwd) {
-      response.put("error", cwd.getMessage());
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(cwd.getMessage());
     } catch (Exception e) {
-      response.put("error", "Erro inesperado ao realizar a compra.");
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     }
 
   }
