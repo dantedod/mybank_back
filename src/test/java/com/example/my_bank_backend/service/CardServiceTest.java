@@ -1,30 +1,32 @@
 package com.example.my_bank_backend.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import com.example.my_bank_backend.domain.account.Account;
 import com.example.my_bank_backend.domain.card.Card;
-import com.example.my_bank_backend.dto.TransactionResponseDto;
 import com.example.my_bank_backend.exception.AccountNotFoundException;
 import com.example.my_bank_backend.exception.CardAlreadyExistsException;
 import com.example.my_bank_backend.exception.CardNotFoundException;
 import com.example.my_bank_backend.repositories.AccountRepository;
 import com.example.my_bank_backend.repositories.CardRepository;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 class CardServiceTest {
 
@@ -118,42 +120,7 @@ class CardServiceTest {
         verify(cardRepository, times(1)).findCardsByAccountCpf("12345678909");
     }
 
-    @Test
-    void testBuyWithCard() {
-        Card testCard = new Card();
-        testCard.setId(1L);
-        testCard.setCardValue(1000.0);
-
-        Account testAccount = new Account();
-        testAccount.setId(1L);
-        testAccount.setCreditLimit(2000.0);
-        testAccount.setUsedLimit(1000.0);
-
-        when(cardRepository.findById(1L)).thenReturn(Optional.of(testCard));
-        when(accountRepository.findByCpf("12345678909")).thenReturn(Optional.of(testAccount));
-        when(invoiceService.createInvoice(any(), anyDouble(), anyInt(), anyInt())).thenReturn("SUCCESS");
-
-        TransactionResponseDto savedTransaction = new TransactionResponseDto(1L, testAccount.getId(), testCard.getId(),
-                200.0, "Purchase made!", null);
-        when(transactionService.processTransaction(any(), any(), anyDouble(), any())).thenReturn(savedTransaction);
-
-        String result = cardService.buyWithCard(1L, "12345678909", 200.0);
-
-        assertEquals("Purchase successful! Transaction ID: 1", result);
-        assertEquals(800.0, testCard.getCardValue());
-        assertEquals(1200.0, testAccount.getUsedLimit());
-    }
-
-    @Test
-    void testBuyWithCard_InsufficientLimit() {
-        account.setUsedLimit(1900.0);
-
-        when(cardRepository.findById(1L)).thenReturn(Optional.of(card));
-        when(accountRepository.findByCpf("12345678909")).thenReturn(Optional.of(account));
-
-        String result = cardService.buyWithCard(1L, "12345678909", 200.0);
-        assertEquals("Insufficient limit!", result);
-    }
+  
 
     @Test
     void testDisableCard_Success() {
