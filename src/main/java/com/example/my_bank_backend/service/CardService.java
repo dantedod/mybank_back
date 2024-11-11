@@ -122,6 +122,76 @@ public class CardService {
     return cardRepository.findCardsByAccountCpf(accountCpf);
   }
 
+  public List<Card> findCardByName(String cardName, String accountCpf ){
+    return cardRepository.findByCardName(cardName,accountCpf);
+  }
+  
+  @Transactional
+  public String buyWithCardName(String cardName,Double purchaseAmount, String cardPassword,String accountCpf,String paymentDescription){
+    List<Card> cards = cardRepository.findByCardName(cardName,accountCpf);
+
+    if(cards.isEmpty()){
+              throw new IllegalArgumentException("Card not found!");
+    }
+
+    Card card = cards.stream().filter((c -> c.getIsActive())).findFirst()
+    .orElseThrow(() -> new IllegalArgumentException("No active card found with the provided name"));
+       
+    System.out.println(card.getCardName().equals(cardName));
+
+
+     if (card.getAccount() == null || !card.getAccount().getCpf().equals((accountCpf))) {
+      throw new CardNotExisteInAccount("This card belongs to another account");
+    }
+
+    if (!card.getIsActive()) {
+      throw new CardDisabledException("The card is disabled and cannot be used for purchases.");
+    }
+
+    if (!passwordEncoder.matches(cardPassword, card.getCardPassword())) {
+      System.out.println("Senha fornecida: " + cardPassword);
+      System.out.println("Senha armazenada (criptografada): " + card.getCardPassword());
+      throw new CardPasswordIncorrect("Incorrect card password.");
+    }
+
+    Account account = accountRepository.findByCpf(accountCpf)
+        .orElseThrow(() -> new IllegalArgumentException("Account not found!"));
+
+    if (account.getCreditLimit() - account.getUsedLimit() < purchaseAmount) {
+      throw new InsufficientLimitException("Insufficient Limit!");
+    }
+
+    if (purchaseAmount > card.getCardValue()) {
+      throw new InsufficientCardValueException("Your card does not have enough value for this purchase!");
+    }
+
+    account.setUsedLimit(account.getUsedLimit() + purchaseAmount);
+    card.setCardValue(card.getCardValue() - purchaseAmount);
+
+    cardRepository.save(card);
+    accountRepository.save(account);
+
+    String invoiceResponse = invoiceService.createInvoice(account, purchaseAmount,
+        LocalDate.now().getMonthValue(), LocalDate.now().getYear());
+
+    if (invoiceResponse == null || (!invoiceResponse.equalsIgnoreCase("Invoice updated") &&
+        !invoiceResponse.equalsIgnoreCase("SUCCESS"))) {
+      return "Invoice creation failed: " + (invoiceResponse != null ? invoiceResponse : "No response received");
+    }
+
+    TransactionResponseDto transactionResponse = transactionService.processTransaction(
+        account.getId(), card.getId(), purchaseAmount, paymentDescription);
+
+    if (transactionResponse == null) {
+      throw new IllegalStateException("Transaction processing failed!");
+    }
+
+    return "Purchase successful! Transaction ID: " + transactionResponse.id();
+  }
+
+    
+
+
   @Transactional
   public String buyWithCard(Long cardId, String accountCpf, Double purchaseAmount, String cardPassword, String paymentDescription) {
     Card card = cardRepository.findById(cardId)
