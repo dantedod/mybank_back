@@ -10,9 +10,9 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://dpg-csbtsmbtq21c73a8ef10-a:5432/my_bank_postgres
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ep-plain-snow-a54o6ca5.us-east-2.aws.neon.tech:5432/my_bank_db?sslmode=require
+      - SPRING_DATASOURCE_USERNAME=my_bank_db_owner
+      - SPRING_DATASOURCE_PASSWORD=iQphfrT1c0uW
       - API_SECURITY_TOKEN_SECRET=${API_SECURITY_TOKEN_SECRET}
 
 volumes:
